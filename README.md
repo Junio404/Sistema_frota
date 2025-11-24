@@ -34,4 +34,82 @@ Estas classes orquestram a aplicação da lógica e as interações com o reposi
 **Relatórios (Reports):** A classe RelatoriosService (ou ReportRepository) é responsável por executar queries analíticas complexas para gerar o ranking de eficiência, o custo médio de manutenção e a quilometragem média por tipo de veículo.
 
 ## Estrutura do diretório do projeto (Inicial)
+<p align="center">
 <img src="repositorios_projeto_initial.png" alt="Imagem das pastas iniciais do projeto" width="200" height="400">
+</p>
+
+## Diagrama de classes Textual do Projeto
+### Veículo (Carro, Moto e Caminhão) | 
+
+| Atributos | Métodos |
+| :--- | :--- |
+| **PLACA** | **CRUD** |
+| **MODELO** | **HISTÓRICO** |
+| **ANO** | |
+| **QUILOMETRAGEM** | |
+| **CUSTO MÉDIO (KM/L)** | |
+| **STATUS** (Ativo, Inativo ou Manutenção) | |
+
+### Motorista
+
+| Atributos | Métodos |
+| :--- | :--- |
+| NOME | CRUD |
+| CPF | VALIDAÇÃO AUTOMÁTICA (CNH) |
+| CAT. CNH | |
+| EXP (ANOS) | |
+| DISPONIBILIDADE | |
+
+---
+
+### Manutenção
+
+| Atributos | Métodos |
+| :--- | :--- |
+| TIPO DA MANUTENÇÃO | MARCAR VEÍCULO COMO: “EM MANUTENÇÃO” |
+| PLACA DO VEÍCULO (IDENTIFICADOR) | ASSOCIAR VEÍCULO E ARMAZENAR HISTÓRICO |
+
+---
+
+### Abastecimento
+
+| Atributos | Métodos |
+| :--- | :--- |
+| PLACA DO VEÍCULO (IDENTIFICADOR) | REGISTRAR ABASTECIMENTO |
+| TIPO GASOLINA | CALCULAR CONSUMO MÉDIO / VEICULO (KM/L) |
+| DATA | LISTAR VEÍCULOS COM CONSUMO FORA DO PADRÃO |
+| LITROS | |
+| VALOR PAGO | |
+
+---
+
+### Viagem
+
+| Atributos | Métodos |
+| :--- | :--- |
+| PLACA DO VEÍCULO (IDENTIFICADOR) | ATUALIZAR QUILOMETRAGEM DO VEÍCULO APÓS VIAGEM |
+| CPF MOTORISTA (IDENTIFICADOR) | BLOQUEAR ALOCAÇÃO DE VEÍCULO SE: MANUTENÇÃO OU INATIVO |
+| ORIGEM | |
+| DESTINO | |
+| DISTANCIA | |
+
+---
+
+### Relatórios
+
+| Atributos | Métodos |
+| :--- | :--- |
+| REPOSITÓRIO VEÍCULOS | CUSTO TOTAL E MÉDIO DA MANUTENÇÃO POR TIPO DE VEÍCULO |
+| REPOSITÓRIO MOTORISTAS | RANKING DE EFICIENCIA (KM/L) |
+| | TOTAL DE VIAGENS POR MOTORISTA |
+| | QUILOMETRAGEM MÉDIA POR TIPO DE VEÍCULO |
+
+## Diagrama Visual
+<p align="center">
+  <img src="diagrama_visual.png" alt="Imagem do diagrama visual do projeto" width="800" height="800">
+</p>
+
+
+
+
+
