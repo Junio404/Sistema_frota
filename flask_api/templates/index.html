@@ -1,11 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<body>
-    <h1>HELLO WORLD</h1>
-</body>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/index.css')}}"
+    />
+  </head>
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Menu Principal</h2>
+
+    <main class="principal">
+      <a href="{{url_for('routes.forms_motorista')}}" class="card_link">
+      <div class="principal_card_person principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/person.svg')}}" alt="" />
+        <p class="principal_card_name">Motorista</p>
+      </div>
+      </a>
+      <div class="principal_card_veicle principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/truck.svg')}}" alt="" />
+        <p class="principal_card_name">Veiculos</p>
+      </div>
+      <div class="principal_card_fuel principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/fuel.svg')}}" alt="" />
+        <p class="principal_card_name">Abastecimento</p>
+      </div>
+      <div class="principal_card_maintence principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/maintence.svg')}}" alt="" />
+        <p class="principal_card_name">Manutenção</p>
+      </div>
+      <div class="principal_card_report principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/report.svg')}}" alt="" />
+        <p class="principal_card_name">Relatórios</p>
+      </div>
+      <div class="principal_card_history principal_card">
+        <img class="principal_card_img" src="{{url_for('static',filename='img/history.svg')}}" alt="" />
+        <p class="principal_card_name">Históricos</p>
+      </div>
+    </main>
+  </body>
 </html>

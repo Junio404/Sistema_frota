@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>forms</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/forms.css')}}"
+    />
+  </head>
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Formulário</h2>
+
+    <form action="POST">
+      <main class="forms-area">
+        <label class="forms-label" for="nome">Nome</label>
+        <input class="forms-input" type="text" name="nome" id="nome" />
+        <label class="forms-label" for="cpf">CPF</label>
+        <input class="forms-input" type="text" name="cpf" id="cpf" />
+        <label class="forms-label" for="cnh">Categoria de CNH</label>
+        <input class="forms-input" type="text" name="cnh" id="cnh" />
+        <label class="forms-label" for="Experiencia">Anos de Experiência</label>
+        <input class="forms-input" type="text" name="Experiencia" id="Experiencia" />
+        <label class="forms-label" for="disponibilidade">Disponibilidade</label>
+        <input class="forms-input" type="text" name="disponibilidade" id="disponibilidade" />
+        <label class="forms-label" for="cnh_valido_ate">CNH Valida Ate</label>
+        <input class="forms-input" type="date" name="cnh_valido_ate" id="cnh_valido_ate" />
+      </main>
+      <div class="buttons">
+        <button class="submit-button" type="submit">Enviar</button>
+
+      </div>
+    </form>
+  </body>
+</html>

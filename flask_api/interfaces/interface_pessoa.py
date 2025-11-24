@@ -1,7 +1,22 @@
-class Pessoa:
-    def __init__(self, nome_motorista: str, cpf: str):
-        self.nome_motorista = nome_motorista
-        self.cpf = cpf
+from pydantic import BaseModel
+from typing import Optional
 
-        
-        
+
+class PessoaBase(BaseModel):
+    nome: str
+    cpf: str
+
+
+class PessoaCreate(PessoaBase):
+    pass
+
+
+class PessoaUpdate(BaseModel):
+    nome: Optional[str] = None
+
+
+class PessoaResponse(PessoaBase):
+    id: int
+
+    class Config:
+        from_attributes = True

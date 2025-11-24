@@ -1,15 +1,31 @@
-from interfaces.interface_pessoa import Pessoa
+from datetime import date
+from typing import Optional
+from enums import Status_motorista
+from interfaces.interface_pessoa import PessoaCreate, PessoaResponse, PessoaUpdate
 
-class Motorista(Pessoa):
-    def __init__(self, nome: str, cpf: str, cat_cnh: str, exp_anos: int, disponibilidade: str):
-        super().__init__(nome, cpf)
-        self.cat_cnh = cat_cnh
-        self.exp_anos = exp_anos
-        self.disponibilidade = disponibilidade
-        
-    
-    def validar_cnh(nome, cpf):
-        '''
-        Valida a cnh do motorista e informa qual tipo de veículo ele pode dirigir de acordo com sua categoria.
-        '''
-        
+
+# -------------------- MOTORISTA CREATE --------------------
+class MotoristaCreate(PessoaCreate):
+    cat_cnh: str
+    exp_anos: int
+    disponibilidade: Status_motorista
+    cnh_valido_ate: date
+
+
+# -------------------- MOTORISTA UPDATE --------------------
+class MotoristaUpdate(PessoaUpdate):
+    cat_cnh: Optional[str] = None
+    exp_anos: Optional[int] = None
+    disponibilidade: Optional[Status_motorista] = None
+    cnh_valido_ate: Optional[date] = None
+
+
+# -------------------- MOTORISTA RESPONSE --------------------
+class MotoristaResponse(PessoaResponse):
+    cat_cnh: str
+    exp_anos: int
+    disponibilidade: Status_motorista
+    cnh_valido_ate: date
+
+    class Config:
+        from_attributes = True

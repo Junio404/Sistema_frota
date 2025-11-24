@@ -1,0 +1,148 @@
+html{
+    height: 100%;
+    font-size: 37.5%;
+}
+
+:root{
+    --cor-do-texto: #1B263B;
+    --card-color: #e1eafe;
+    --cor-do-titulo: #F0F3FA;
+    --cor-do-titulo-secundario: #e4e4e4;
+
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/static/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/static/fonts/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+
+body{
+    font-family: Inter;
+    margin: 0;
+    padding: 0;
+    background-color: #1B263B;
+}
+
+.titulo_principal{
+    text-align: center;
+    font-size: 7rem;
+    font-weight: bold;
+    color: var(--cor-do-titulo-secundario);
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: .5rem;
+}
+
+.subtitulo_principal{
+    text-align: center;
+    font-size: 4.5rem;
+    font-weight: bold;
+    color: white;
+    margin-top: 2rem;
+    letter-spacing: .25rem;
+}
+
+
+.forms-area {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 53%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 55vh;
+  width: 400px;
+  padding: 20px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+  background-color: var(--card-color);
+  
+}
+
+.forms-area::-webkit-scrollbar {
+  visibility: hidden;
+}
+
+
+
+.forms-label {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+  color: var(--cor-do-texto);
+  letter-spacing: .25rem;
+  margin: 1rem 0;
+}
+
+.forms-input {
+  margin: 1.5rem 0 1.75rem 0;
+  width: 62rem;
+  height: 3rem;
+  padding: 1.26rem 1.26rem 1.26rem 1.6rem;
+  border: none;
+  font-size: 2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: #eeeeeea3;
+  text-align: left;
+  color: rgb(55, 55, 55);
+  box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.724);
+  color: #4f4f4f;
+}
+
+.forms-input:focus {
+  border-color: var(--cor-do-texto);
+  box-shadow: 0 0 4px 1px rgb(71, 98, 146, 0.25);
+  transform: scale(1.03);
+  transition: all 0.2s ease-in-out;
+}
+.forms-input:hover {
+  transform: scale(1.03);
+  transition: all 0.2s ease-in-out;
+  outline: 2px solid var(--cor-do-texto);
+}
+
+.buttons{
+    position: absolute;
+    top: 90%;
+    left: 64%;
+    transform: translate(-50%, -50%);
+}
+.submit-button {
+  background-color: var(--cor-do-titulo); /* lilás moderno */
+  color: var(--cor-do-texto);
+
+  border-radius: 10px;
+  padding: 2.5rem 3rem 2.5rem 3rem;
+  font-size: 2rem;
+  cursor: pointer;
+  border: none;
+  box-shadow: 1px 5px 10px 2px rgba(136, 180, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  height: max-content;
+  width: max-content;
+  margin-right: 0.2rem;
+  margin-top: 1.5rem;
+  font-weight: 600;
+  align-self: flex-end;
+  justify-self: right;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  transition: all 0.4s ease-in-out;
+  box-shadow: 1px 5px 10px 2px rgba(119, 169, 255, 0.646);
+  outline: 1px solid black;
+}
