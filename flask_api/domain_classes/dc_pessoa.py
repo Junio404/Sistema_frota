@@ -29,6 +29,6 @@ class Pessoa:
 
     @cpf.setter
     def cpf(self, value: str):
-        if len(value) < 11:
+        if len(value) != 11:
             raise ValueError("CPF inválido")
         self._cpf = value

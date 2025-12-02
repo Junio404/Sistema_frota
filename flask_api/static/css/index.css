@@ -70,6 +70,39 @@ body{
     cursor: pointer;
 }
 
+.principal-index{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2rem;
+
+    grid-template-areas: 
+    "person veicles"
+    "report history";
+
+    height: 68vh;
+    padding: 2rem 5rem 2rem 29rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.principal-report{
+        display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2rem;
+
+    grid-template-areas: 
+    "person veicles"
+    "report report";
+
+    height: 68vh;
+    padding: 2rem 5rem 2rem 29rem;
+    text-align: center;
+    cursor: pointer;
+
+}
+
 .principal_card:hover{
   transform: scale(1.03);
   background-color: #c4d5fb;
@@ -104,6 +137,10 @@ body{
 
 .principal_card_name{
     font-size: 6rem;
+}
+
+.km_veiculo{
+    font-size: 4.5rem;
 }
 
 .principal_card_img{
@@ -149,6 +186,13 @@ body{
     border-radius: 10px;
 }
 
+.report{
+    grid-area: report;
+    margin: 0.5rem;
+    padding: 1rem 1rem 1rem 1rem;
+    border-radius: 10px;
+}
+
 .principal_card_history{
     grid-area: history;
     margin: 0.5rem;
@@ -157,6 +201,38 @@ body{
 }
 
 
+.flash-messages {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  justify-content: center;
+  margin: 1rem auto;
+  max-width: 60rem;
+}
+
+.flash {
+  background-color: #4CAF50; /* verde de sucesso */
+  color: white;
+  font-size: 1.8rem;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  text-align: center;
+  animation: fadeInOut 4s ease forwards;
+}
+
+
+/* some automaticamente depois de 4s */
+@keyframes fadeInOut {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  90%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
 
 
 

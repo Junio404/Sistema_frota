@@ -6,7 +6,8 @@ class Veiculo_status(str, Enum):
     ATIVO = "ATIVO"
     INATIVO = "INATIVO"
     MANUTENCAO = "MANUTENÇÃO"
-    
+    EM_VIAGEM = "EM_VIAGEM"
+        
 # -------------------- ENUMS MOTORISTA --------------------
 
 class Motorista_status(str, Enum):
@@ -16,8 +17,8 @@ class Motorista_status(str, Enum):
 # -------------------- ENUMS MANUTENÇÃO --------------------
 
 class Tipo_manutencao(str, Enum):
-    PREVENTIVA = "Preventiva"
-    CORRETIVA = "Corretiva"
+    PREVENTIVA = "PREVENTIVA"
+    CORRETIVA = "CORRETIVA"
 
 
 # -------------------- ENUM COMBUSTÍVEL --------------------
@@ -32,6 +33,7 @@ class Tipo_combustivel(str, Enum):
 
 class Status_motorista(str, Enum):
     ATIVO = "ATIVO"
+    EM_VIAGEM = "EM_VIAGEM"
     INATIVO = "INATIVO"
 
 
@@ -40,3 +42,19 @@ class Status_motorista(str, Enum):
 class Status_viagem(str, Enum):
     EM_ANDAMENTO = "EM_ANDAMENTO"
     CONCLUIDA = "CONCLUIDA"
+    
+
+# -------------------- ENUM QTD COMBUSTIVEL --------------------
+
+class Qtd_combustivel_litro(int, Enum):
+    CARRO = 60
+    MOTO = 15
+    CAMINHAO = 700
+
+
+# -------------------- ENUM TIPO EVENTO --------------------
+
+class Tipo_evento(str, Enum):
+    VIAGEM = "VIAGEM"
+    ABASTECIMENTO = "ABASTECIMENTO"
+    MANUTENCAO = "MANUTENÇÃO"

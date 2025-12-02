@@ -1,3 +1,5 @@
+from repositories.motorista_repo.motorista__repo import validar_placa_mercosul
+
 class Veiculo:
     def __init__(self, placa: str, modelo_fk: int, tipo_veiculo: str, ano: int,
                  quilometragem: float, consumo_medio: float, status: str):
@@ -13,7 +15,14 @@ class Veiculo:
     @property
     def placa(self):
         return self.__placa
-
+    
+    @placa.setter
+    def placa(self,value):
+        if len(value) != 7:
+            raise ValueError("Placa digitada não é válida")
+        if validar_placa_mercosul(value) == False:
+            raise ValueError("Placa digitada não tem o padrão mercosul")
+        self.__placa = value
     @property
     def modelo_fk(self):
         return self.__modelo_fk

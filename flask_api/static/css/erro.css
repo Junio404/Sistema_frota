@@ -1,0 +1,92 @@
+html {
+  height: 100%;
+  font-size: 37.5%;
+}
+
+:root {
+  --cor-do-texto: #1b263b;
+  --card-color: #e1eafe;
+  --cor-do-titulo: #f0f3fa;
+  --cor-do-titulo-secundario: #e4e4e4;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/static/fonts/Inter-VariableFont_opsz,wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/static/fonts/Inter-Italic-VariableFont_opsz,wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+body {
+  font-family: Inter;
+  margin: 0;
+  padding: 0;
+  background-color: #1b263b;
+}
+
+h1 {
+  text-align: center;
+  font-size: 7rem;
+  font-weight: bold;
+  color: var(--cor-do-titulo-secundario);
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.5rem;
+}
+
+p {
+  text-align: center;
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4.5rem;
+  font-weight: bold;
+  color: white;
+  margin-top: 2rem;
+  letter-spacing: 0.25rem;
+}
+
+button {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--cor-do-titulo); /* lilás moderno */
+  color: var(--cor-do-texto);
+  border-radius: 10px;
+  padding: 2.5rem 3rem 2.5rem 3rem;
+  font-size: 3rem;
+  cursor: pointer;
+  border: none;
+  box-shadow: 1px 5px 10px 2px rgba(136, 180, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  height: max-content;
+  width: max-content;
+  margin-right: 0.2rem;
+  margin-top: 1.5rem;
+  font-weight: 600;
+  align-self: flex-end;
+  justify-self: right;
+}
+
+button:hover {
+
+  transition: all 0.4s ease-in-out;
+  box-shadow: 1px 5px 10px 2px rgba(119, 169, 255, 0.646);
+  outline: 1px solid black;
+}
+
+
+a{
+    text-decoration: none;
+}

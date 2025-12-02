@@ -4,7 +4,7 @@ from typing import Optional
 
 # -------------------- TIPO VEICULO RESPONSE --------------------
 
-class TipoVeiculoCNHResponse(BaseModel):
+class Tipo_veiculo_cnh_response(BaseModel):
     tipo_veiculo: str
     cat_min_cnh: str
 

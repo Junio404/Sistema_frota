@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/index.css')}}"
+    />
+  </head>
+  <body>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <div class="flash-messages">
+      {% for msg in messages %}
+      <div class="flash">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Menu Principal</h2>
+
+    <main class="principal-report">
+      <a href="{{url_for('routes.motorista_options')}}" class="card_link">
+        <div class="principal_card_person principal_card">
+          <img
+            class="principal_card_img"
+            src="{{url_for('static',filename='img/person.svg')}}"
+            alt=""
+          />
+          <p class="principal_card_name">Ranking Eficiencia</p>
+        </div>
+      </a>
+      <a href="{{url_for('routes.veiculo_options')}} " class="card_link">
+        <div class="principal_card_veicle principal_card">
+          <img
+            class="principal_card_img"
+            src="{{url_for('static',filename='img/truck.svg')}}"
+            alt=""
+          />
+          <p class="principal_card_name">Total de Viagens</p>
+        </div>
+      </a>
+      <div class="principal_card_report principal_card">
+        <img
+          class="principal_card_img"
+          src="{{url_for('static',filename='img/report.svg')}}"
+          alt=""
+        />
+        <p class="principal_card_name km_veiculo">Quilometragem por Veículo</p>
+
+    </main>
+  </body>
+</html>

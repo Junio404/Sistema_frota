@@ -40,6 +40,8 @@ class Motorista(Pessoa):
 
     @disponibilidade.setter
     def disponibilidade(self, value):
+        if value == self.__disponibilidade:
+            raise ValueError("O motorista já está neste estado")
         if value not in ("ATIVO", "INATIVO"):
             raise ValueError("Status de motorista inválido.")
         self.__disponibilidade = value
@@ -55,3 +57,4 @@ class Motorista(Pessoa):
         if value < date.today():
             raise ValueError("CNH vencida.")
         self.__cnh_valido_ate = value
+        
