@@ -25,7 +25,6 @@ class Veiculo_update(BaseModel):
     quilometragem: Optional[float] = None
     consumo_medio_km_l: Optional[float] = None
     status: Optional[Veiculo_status] = None
-
 # -------------------- VEICULO RESPONSE --------------------
 
 class Veiculo_response(BaseModel):

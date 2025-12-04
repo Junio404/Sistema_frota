@@ -140,6 +140,9 @@ def criar_veiculo():
     if validar_placa_mercosul(placa) == False:
         flash("❌ Placa inválida. Use o padrão Mercosul (LLLNLNNN).")
         return redirect(url_for('routes.forms_veiculo'))
+    if placa_existe(placa):
+        flash("❌ Já há um veiculo com essa placa no sistema!")
+        return redirect(url_for('routes.forms_veiculo'))
 
     # ------------------- BUSCA ÚNICA DO MODELO -------------------
     try:
