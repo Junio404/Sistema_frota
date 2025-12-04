@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from enums import Tipo_combustivel
+from flask_api.models.enums import Tipo_combustivel
 from datetime import date
 
 # -------------------- ABASTECIMENTO CREATE --------------------

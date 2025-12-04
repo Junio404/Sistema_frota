@@ -7,7 +7,6 @@ html {
   --cor-do-texto: #1b263b;
   --card-color: #e1eafe;
   --cor-do-titulo: #f0f3fa;
-  --cor-do-titulo-secundario: #e4e4e4;
 }
 
 @font-face {
@@ -36,9 +35,9 @@ body {
   text-align: center;
   font-size: 7rem;
   font-weight: bold;
-  color: var(--cor-do-titulo-secundario);
+  color: var(--cor-do-titulo);
   margin-top: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   letter-spacing: 0.5rem;
 }
 
@@ -46,54 +45,66 @@ body {
   text-align: center;
   font-size: 4.5rem;
   font-weight: bold;
-  color: white;
+  color: var(--cor-do-titulo);
   margin-top: 2rem;
   letter-spacing: 0.25rem;
+  margin-bottom: 12rem;
 }
 
-.forms-area {
+.tabela-info {
+  color: var(--cor-do-texto);
+  font-size: 4rem;
+}
+
+th {
+  text-align: center;
+}
+
+td {
+  color: var(--cor-do-titulo);
+  font-size: 2rem;
+}
+.principal {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 53%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: 55vh;
-  width: 400px;
-  padding: 20px;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.25);
-  background-color: var(--card-color);
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow-y: scroll;
+  max-height: 1200px;
+  margin: 0 auto;
 }
 
-.forms-area::-webkit-scrollbar {
-  visibility: hidden;
+table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 10px;
 }
 
 .forms-label {
-  font-size: 2.5rem;
+  font-size: 3rem;
   margin-bottom: 5px;
-  color: var(--cor-do-texto);
+  color: var(--cor-do-titulo);
   letter-spacing: 0.25rem;
-  margin: 1rem 0;
+  margin: 1rem 1rem;
 }
 
 .forms-input {
   margin: 1.5rem 0 1.75rem 0;
   width: 62rem;
-  height: 3rem;
+  height: 1rem;
   padding: 1.26rem 1.26rem 1.26rem 1.6rem;
   border: none;
   font-size: 2rem;
   font-weight: 600;
   border-radius: 6px;
-  background-color: #eeeeeea3;
-  text-align: left;
+  background-color: #ffffff;
+  text-align: center;
   color: rgb(55, 55, 55);
   box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.724);
-  color: #4f4f4f;
+  color: var(--cor-do-texto);
 }
 
 .forms-input:focus {
@@ -108,49 +119,33 @@ body {
   outline: 2px solid var(--cor-do-texto);
 }
 
-select {
-  margin: 1.5rem 0 1.75rem 0;
-  width: 65rem;
-  height: 6rem;
-  padding: 1.26rem 1.26rem 1.26rem 1.6rem;
-  border: none;
-  font-size: 2rem;
-  font-weight: 600;
-  border-radius: 6px;
-  background-color: #eeeeeea3;
-  text-align: left;
-  color: rgb(55, 55, 55);
-  box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.724);
-  color: #4f4f4f;
-}
-
-select:focus {
-  border-color: var(--cor-do-texto);
-  box-shadow: 0 0 4px 1px rgb(71, 98, 146, 0.25);
-  transform: scale(1.03);
-  transition: all 0.2s ease-in-out;
-}
-select:hover {
-  transform: scale(1.03);
-  transition: all 0.2s ease-in-out;
-  outline: 2px solid var(--cor-do-texto);
-}
-
-.buttons {
+.forms-area {
   display: flex;
+  flex-direction: row;
   position: absolute;
-  top: 90%;
-  left: 50%;
+  top: 25%;
+  left: 28%;
   transform: translate(-50%, -50%);
-  gap: 30rem;
+  border-radius: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 55vh;
+  width: 50vw;
+  padding: 20px;
 }
+
 .submit-button {
+  position: absolute;
+  top: 21%;
+  left: 54%;
+
   background-color: var(--cor-do-titulo); /* lilás moderno */
   color: var(--cor-do-texto);
-
   border-radius: 10px;
-  padding: 2.5rem 3rem 2.5rem 3rem;
-  font-size: 2rem;
+  padding: 2.0rem 1.5rem 2rem 1.5rem;
+  margin-left: 2rem;
+  margin-bottom: 2rem;
+  font-size: 1.25rem;
   cursor: pointer;
   border: none;
   box-shadow: 1px 5px 10px 2px rgba(136, 180, 255, 0.25);
@@ -161,8 +156,7 @@ select:hover {
   margin-right: 0.2rem;
   margin-top: 1.5rem;
   font-weight: 600;
-  align-self: flex-end;
-  justify-self: right;
+
 }
 
 .submit-button:hover {
@@ -173,42 +167,36 @@ select:hover {
 }
 
 
-.modelo-forms{
+
+.clean-button {
+  position: absolute;
+  top: 21%;
+  left: 60%;
+
+  background-color: var(--cor-do-titulo); /* lilás moderno */
+  color: var(--cor-do-texto);
+  border-radius: 10px;
+  padding: 2.0rem 3rem 2rem 3rem;
+  margin-left: 2.1rem;
+  margin-bottom: 2rem;
+  font-size: 1.25rem;
   cursor: pointer;
+  border: none;
+  box-shadow: 1px 5px 10px 2px rgba(136, 180, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  height: max-content;
+  width: max-content;
+  margin-right: 0.2rem;
+  margin-top: 1.5rem;
+  font-weight: 600;
+
 }
 
-
-.flash-messages {
-  display: flex;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  justify-content: center;
-  margin: 1rem auto;
-  max-width: 60rem;
+.clean-button:hover {
+  transform: translateY(-2px);
+  transition: all 0.4s ease-in-out;
+  box-shadow: 1px 5px 10px 2px rgba(119, 169, 255, 0.646);
+  outline: 1px solid black;
 }
-
-.flash {
-  background-color: #4CAF50; /* verde de sucesso */
-  color: white;
-  font-size: 1.8rem;
-  font-weight: bold;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  text-align: center;
-  animation: fadeInOut 4s ease forwards;
-}
-
-
-/* some automaticamente depois de 4s */
-@keyframes fadeInOut {
-  0%   { opacity: 0; transform: translateY(-10px); }
-  10%  { opacity: 1; transform: translateY(0); }
-  90%  { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-
 

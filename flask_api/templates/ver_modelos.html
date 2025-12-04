@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de Modelos</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/tables.css')}}">
+
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Lista de Modelos</h2>
+
+    <main class="forms-area">
+        <label class="forms-label" for="id">ID_Modelo</label>
+        <input class="forms-input" type="text" name="id" id="nome_modelo" /> <label class="forms-label" for="modelo">Modelo</label>
+        <input class="forms-input" type="text" name="modelo" id="tipo_veiculo" /> </main>
+    <button class="submit-button" type="submit">Pesquisar</button>
+    <button class="clean-button" type="reset">Limpar</button>
+
+
+    <table class="tabela-info">
+        <thead>
+            <tr class="tabela-header">
+                <th>ID</th>
+                <th>Modelo</th>
+                <th>Marca</th>
+                <th>Tipo</th>
+                <th>Cat CNH</th>
+                <th>Litros</th>
+                <th>Consumo</th>
+                <th>Combustivel</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-modelos"></tbody>
+    </table>
+
+<script>
+    // Referências aos elementos do HTML
+    const tabela = document.getElementById("tabela-modelos");
+    // CORREÇÃO: Usando a chave 'modelo_id' para o ID, mais claro
+    const id_input = document.getElementById('nome_modelo'); 
+    // CORREÇÃO: Usando a chave 'nome_modelo' para o Nome do Modelo
+    const modelo_input = document.getElementById('tipo_veiculo'); 
+    const button = document.querySelector('.submit-button');
+    const clear_button = document.querySelector('.clean-button'); // Garante que o clear_button está aqui
+
+    // URL da API
+    const API_URL = "/api/marcas_modelos";
+
+
+    // 1. Função de carregamento inicial (preenche a tabela com TODOS os modelos)
+    async function carregarModelos() {
+        tabela.innerHTML = `<tr><td colspan="8">Carregando modelos...</td></tr>`;
+
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                tabela.innerHTML = `<tr><td colspan="8">Erro ao buscar dados: ${response.status}</td></tr>`;
+                return;
+            }
+            const dados = await response.json(); // Array de Marcas
+            
+            // Limpar a tabela antes de preencher
+            tabela.innerHTML = "";
+
+            dados.forEach(marca => {
+                marca.modelos.forEach(modelo => {
+                    const linha = document.createElement("tr");
+
+                    // ⭐️ PADRONIZAÇÃO DE CHAVES (de maiúsculas para snake_case) ⭐️
+                    linha.innerHTML = `
+                        <td>${modelo.id}</td>
+                        <td>${modelo.nome_modelo}</td>
+                        <td>${marca.marca}</td>
+                        <td>${modelo.tipo_veiculo}</td>
+                        <td>${modelo.cat_min_cnh}</td>
+                        <td>${modelo.qtd_litros}</td>
+                        <td>${modelo.consumo_medio_km_l}</td>
+                        <td>${modelo.tipo_combustivel}</td> `;
+                    tabela.appendChild(linha);
+                });
+            });
+
+            if (dados.every(marca => marca.modelos.length === 0)) {
+                tabela.innerHTML = `<tr><td colspan="8">Nenhum modelo cadastrado.</td></tr>`;
+            }
+
+        } catch (error) {
+             tabela.innerHTML = `<tr><td colspan="8">Falha na comunicação com o servidor.</td></tr>`;
+        }
+    }
+
+    // 2. Função principal de busca e filtragem no lado do cliente
+    async function filtrar_dados(event) {
+        if (event) event.preventDefault(); 
+        
+        tabela.innerHTML = `<tr><td colspan="8">Buscando...</td></tr>`;
+
+        const id_busca = id_input.value.trim();
+        const modelo_busca = modelo_input.value.trim().toLowerCase();
+
+        // 3. Buscar TODOS os dados do servidor
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                tabela.innerHTML = `<tr><td colspan="8">Erro ao buscar dados: ${response.status}</td></tr>`;
+                return;
+            }
+            const dados = await response.json();
+
+            // 4. Filtrar os dados e montar a lista de resultados
+            const resultados_filtrados = [];
+
+            dados.forEach(marca => {
+                marca.modelos.forEach(modelo => {
+                    
+                    // Filtro por ID (exato) e Modelo (substring, case-insensitive)
+                    // ⭐️ PADRONIZAÇÃO DE CHAVES
+                    const id_match = !id_busca || String(modelo.id) === id_busca;
+                    const modelo_match = !modelo_busca || modelo.nome_modelo.toLowerCase().includes(modelo_busca);
+                    
+                    if (id_match && modelo_match) {
+                        resultados_filtrados.push({
+                            ...modelo, 
+                            MARCA: marca.marca // Inclui a marca no objeto modelo para fácil exibição
+                        });
+                    }
+                });
+            });
+
+            // Limpar a tabela antes de preencher
+            tabela.innerHTML = "";
+            
+            // Preenche a tabela com os resultados filtrados
+            if (resultados_filtrados.length === 0) {
+                tabela.innerHTML = `<tr><td colspan="8">Nenhum veículo encontrado.</td></tr>`;
+                return;
+            }
+
+            resultados_filtrados.forEach(modelo_filtrado => {
+                const linha = document.createElement("tr");
+
+                // ⭐️ PADRONIZAÇÃO DE CHAVES (de maiúsculas para snake_case) ⭐️
+                linha.innerHTML = `
+                    <td>${modelo_filtrado.id}</td>
+                    <td>${modelo_filtrado.nome_modelo}</td>
+                    <td>${modelo_filtrado.MARCA}</td> 
+                    <td>${modelo_filtrado.tipo_veiculo}</td>
+                    <td>${modelo_filtrado.cat_min_cnh}</td>
+                    <td>${modelo_filtrado.qtd_litros}</td>
+                    <td>${modelo_filtrado.consumo_medio_km_l}</td>
+                    <td>${modelo_filtrado.tipo_combustivel}</td>
+                `;
+                tabela.appendChild(linha);
+            });
+
+        } catch (error) {
+            tabela.innerHTML = `<tr><td colspan="8">Falha na comunicação com o servidor.</td></tr>`;
+        }
+    }
+
+    // Event listeners
+    carregarModelos(); // executa ao carregar a página
+    button.addEventListener('click', filtrar_dados); // Chama a função de filtro ao clicar em Pesquisar
+
+    clear_button.addEventListener('click', () => {
+        id_input.value = '';
+        modelo_input.value = '';
+        filtrar_dados(null); // Chama a função de filtro ao clicar em Limpar
+    });
+</script>
+
+</body>
+</html>

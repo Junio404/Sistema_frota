@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>forms</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/forms.css')}}"
+    />
+  </head>
+  <body>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <div class="flash-messages">
+      {% for msg in messages %}
+      <div class="flash">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Formulário - Abastecimento</h2>
+
+    <form action="/criar_abastecimento" method="POST">
+      <main class="forms-area">
+        <label class="forms-label" for="placa">Placa (PADRÃO MERCOSUL)</label>
+        <input
+          class="forms-input"
+          type="text"
+          name="placa_fk"
+          id="placa_fk"
+          required
+        />
+        <label class="forms-label" for="litros">Litros</label>
+        <input
+          class="forms-input"
+          type="number"
+          step="0.01"
+          name="litros"
+          id="litros"
+          required
+        />
+        <label class="forms-label" for="valor">Valor</label>
+        <p class="forms-label valor"></p>
+      </main>
+      <div class="buttons">
+        <button class="calcular-valor submit-button" type="button">
+          Calcular valor
+        </button>
+        <button class="submit-button" type="submit">Enviar</button>
+      </div>
+    </form>
+  </body>
+
+  <script>
+const tipo_combustivel = document.getElementById("tipo_combusitvel");
+const litros = document.getElementById("litros");   // corrigido
+const calcularValor = document.querySelector(".calcular-valor");
+const valor = document.querySelector(".valor");     // corrigido
+
+async function calcular_valor() {
+  valor.innerHTML = "Calculando...";
+
+  const response = await fetch("{{ url_for('static', filename='data/settings.json') }}");
+  const dados = await response.json();
+
+  const preco = dados.valor_litro_combustivel[tipo_combustivel.value];
+
+  if (!preco) {
+    valor.innerHTML = "Combustível inválido";
+    return;
+  }
+
+  valor.innerHTML = `R$ ${(litros.value * preco).toFixed(2)}`;
+}
+
+calcularValor.addEventListener("click", calcular_valor);
+
+    
+  </script>
+</html>

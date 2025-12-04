@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from flask_api.models.enums import Veiculo_status
+from flask_api.models.enums import Veiculo_status, Tipo_combustivel
 
 # -------------------- VEICULO CREATE --------------------
 
@@ -13,6 +13,7 @@ class Veiculo_create(BaseModel):
     consumo_medio_km_l: float
     qtd_litros: int
     status: Veiculo_status = Veiculo_status.ATIVO
+    tipo_combustivel: Tipo_combustivel
 
 # -------------------- VEICULO UPDATE --------------------
 
@@ -35,3 +36,4 @@ class Veiculo_response(BaseModel):
     quilometragem: float
     consumo_medio_km_l: float
     status: Veiculo_status
+    tipo_combustivel: Tipo_combustivel

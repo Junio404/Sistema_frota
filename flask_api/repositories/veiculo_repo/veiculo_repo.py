@@ -1,53 +1,30 @@
-import re
 import sqlite3
 from config import Config
+import re
 
-
-def buscar_tipo_modelo(id_modelo: int):
-    """Retorna o tipo do modelo (MOTO, CARRO, CAMINHAO)"""
-    with sqlite3.connect(Config.DATABASE) as conn:
-        conn.execute("PRAGMA foreign_keys = ON")
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT TIPO_VEICULO
-            FROM MODELO
-            WHERE ID = ?
-        """, (id_modelo,))
-
-        row = cur.fetchone()
-        return row[0] if row else None
+def buscar_dados_modelo(id_modelo: int):
+    """Retorna TIPO_VEICULO, QTD_LITROS, CONSUMO_MEDIO_KM_L e TIPO_COMBUSTIVEL de uma vez."""
     
-def buscar_qtd_litros(id_modelo: int):
-    """Retorna a quantidade de litros a partirr do id"""
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT QTD_LITROS
+            SELECT TIPO_VEICULO, QTD_LITROS, CONSUMO_MEDIO_KM_L, TIPO_COMBUSTIVEL
             FROM MODELO
             WHERE ID = ?
         """, (id_modelo,))
 
         row = cur.fetchone()
-        return row[0] if row else None
-
-def buscar_consumo_medio(id_modelo: int):
-    """Retorna o consumo médio pelo id do modelo"""
-    with sqlite3.connect(Config.DATABASE) as conn:
-        conn.execute("PRAGMA foreign_keys = ON")
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT CONSUMO_MEDIO_KM_L
-            FROM MODELO
-            WHERE ID = ?
-        """, (id_modelo,))
-
-        row = cur.fetchone()
-        return row[0] if row else None
-
+        
+        if row:
+            return {
+                "tipo_veiculo": row[0],
+                "qtd_litros": row[1],
+                "consumo_medio_km_l": row[2],
+                "tipo_combustivel": row[3],
+            }
+        return None
 
 
 def inserir_veiculo(data):
@@ -65,8 +42,9 @@ def inserir_veiculo(data):
                 QUILOMETRAGEM,
                 QTD_LITROS,
                 CONSUMO_MEDIO_KM_L,
+                TIPO_COMBUSTIVEL,
                 STATUS
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data.placa.upper(),
             data.modelo_fk,
@@ -75,7 +53,11 @@ def inserir_veiculo(data):
             data.quilometragem,
             data.qtd_litros,
             data.consumo_medio_km_l,
-            data.status.value
+            data.tipo_combustivel,
+            # CORREÇÃO: Passa o valor string do status (o Pydantic já validou)
+            # Use 'data.status' se for string ou 'data.status.value' se for Enum.
+            # Assumindo que Pydantic retornou um objeto string ou Enum.value:
+            data.status 
         ))
 
         conn.commit()

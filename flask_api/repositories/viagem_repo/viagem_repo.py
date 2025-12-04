@@ -1,23 +1,22 @@
 import sqlite3
 from datetime import date
 from typing import Optional, Dict
-
-# Assumindo que você tem um arquivo de configuração ou usa um path fixo.
-# Se você usa 'Config.DATABASE', mude o valor default abaixo.
-DB_PATH = "meu_banco.db" 
-
+from config import Config
 from flask_api.models.enums import (
     Status_motorista,
     Veiculo_status,
     Status_viagem,
     Tipo_evento
 )
-from flask_api.models.model_viagem import ViagemCreate # Assumindo que este é o nome do seu arquivo
+from flask_api.models.model_viagem import ViagemCreate
 
-# =============================================================
-# MAPEAMENTO DE CATEGORIAS MÍNIMAS PARA CNH
-# (Este dicionário é fixo, mas poderia ser obtido da tabela TIPO_VEICULO_CNH)
-# =============================================================
+
+
+DB_PATH = Config.DATABASE 
+
+
+
+
 Tipo_veiculo_cnh = {
     "MOTO": "A",
     "CARRO": "B",
@@ -102,7 +101,7 @@ def validar_status_veiculo(conn: sqlite3.Connection, placa: str) -> str:
     """Verifica status e retorna o tipo de veículo (MOTO/CARRO/CAMINHAO)."""
     cur = conn.cursor()
 
-    # CORREÇÃO: M.ID em vez de M.ID_MODELO e M.TIPO_VEICULO em vez de M.TIPO
+
     cur.execute("""
         SELECT V.STATUS, M.TIPO_VEICULO
         FROM VEICULO V
@@ -157,7 +156,7 @@ def get_quilometragem_atual(conn: sqlite3.Connection, placa: str) -> float:
     row = cur.fetchone()
 
     if not row:
-        # Tecnicamente não deveria ocorrer se validar_status_veiculo passou
+
         raise ValueError("Veículo não encontrado.") 
 
     return float(row["QUILOMETRAGEM"])
@@ -182,7 +181,6 @@ def get_consumo_e_combustivel(conn: sqlite3.Connection, placa: str) -> tuple[flo
     row = cur.fetchone()
 
     if not row:
-         # Tecnicamente não deveria ocorrer se validar_status_veiculo passou
         raise ValueError("Veículo não encontrado.") 
 
     return float(row["CONSUMO_MEDIO_KM_L"]), float(row["QTD_LITROS"])
@@ -195,14 +193,14 @@ def calcular_novo_nivel_combustivel(distancia_km: float, consumo_medio_km_l: flo
 
     litros_gastos = distancia_km / consumo_medio_km_l
     
-    if litros_gastos > qtd_litros_atual:
-        # Nova validação importante: evitar que o combustível fique negativo se a viagem for longa demais
-        raise ValueError(f"Combustível insuficiente. Necessário {litros_gastos:.2f}L, disponível {qtd_litros_atual:.2f}L.")
+    # if litros_gastos > qtd_litros_atual:
+    #     # Nova validação importante: evitar que o combustível fique negativo se a viagem for longa demais
+    #     raise ValueError(f"Combustível insuficiente. Necessário {litros_gastos:.2f}L, disponível {qtd_litros_atual:.2f}L.")
 
     novo_nivel = qtd_litros_atual - litros_gastos
     
     # Garantindo que nunca retorne um valor negativo no banco (embora a validação acima ajude)
-    return max(novo_nivel, 0) 
+    return novo_nivel
 
 
 def atualizar_qtd_litros(conn: sqlite3.Connection, placa: str, novo_qtd_litros: float):
@@ -244,8 +242,8 @@ def inserir_viagem(conn: sqlite3.Connection, viagem: ViagemCreate, hodometro_atu
         viagem.origem,
         viagem.destino,
         viagem.distancia_km,
-        date.today().isoformat(), # DATA_SAIDA é sempre hoje
-        viagem.data_chegada.isoformat(), # Converte a data de chegada do Pydantic para string ISO
+        date.today().isoformat(),
+        viagem.data_chegada.isoformat(),
         hodometro_atual,
         hodometro_chegada,
         Status_viagem.EM_ANDAMENTO.value

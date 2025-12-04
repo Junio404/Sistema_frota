@@ -1,4 +1,4 @@
-from repositories.motorista_repo.motorista__repo import validar_placa_mercosul
+from flask_api.repositories.veiculo_repo.veiculo_repo import validar_placa_mercosul
 
 class Veiculo:
     def __init__(self, placa: str, modelo_fk: int, tipo_veiculo: str, ano: int,
