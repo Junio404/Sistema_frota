@@ -140,9 +140,19 @@ select:hover {
   display: flex;
   position: absolute;
   top: 90%;
+  left: 64%;
+  transform: translate(-50%, -50%);
+
+}
+
+.buttons-abtc{
+  display: flex;
+  position: absolute;
+  top: 80%;
   left: 50%;
   transform: translate(-50%, -50%);
   gap: 30rem;
+
 }
 .submit-button {
   background-color: var(--cor-do-titulo); /* lilás moderno */

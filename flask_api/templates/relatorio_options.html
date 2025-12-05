@@ -32,7 +32,7 @@
         </div>
       </a>
       <a href="{{url_for('routes.veiculo_options')}} " class="card_link">
-        <div class="principal_card_veicle principal_card">
+        <div class="principal_card_veicle principal_card card-total-viagens">
           <img
             class="principal_card_img"
             src="{{url_for('static',filename='img/truck.svg')}}"
@@ -41,13 +41,22 @@
           <p class="principal_card_name">Total de Viagens</p>
         </div>
       </a>
-      <div class="principal_card_report principal_card">
+      <div class="principal_card_report1 principal_card principal-card-">
         <img
           class="principal_card_img"
           src="{{url_for('static',filename='img/report.svg')}}"
           alt=""
         />
         <p class="principal_card_name km_veiculo">Quilometragem por Veículo</p>
+      </div>
+
+            <div class="principal_card_report2 principal_card principal-card">
+        <img
+          class="principal_card_img"
+          src="{{url_for('static',filename='img/report.svg')}}"
+          alt=""
+        />
+        <p class="principal_card_name km_veiculo">Status Carros</p>
 
     </main>
   </body>

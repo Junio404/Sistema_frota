@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Motoristas</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='css/tables.css')}}" />
+</head>
+<body>
+  <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+  <h2 class="subtitulo_principal">Lista de Motoristas</h2>
+
+  <main class="forms-area">
+    <label class="forms-label" for="cpf">CPF</label>
+    <input class="forms-input" type="text" id="cpf_input" />
+
+    <label class="forms-label" for="nome">Nome</label>
+    <input class="forms-input" type="text" id="nome_input" />
+  </main>
+
+  <div class="buttons">
+    <button class="submit-button" type="submit">Pesquisar</button>
+    <button class="clean-button" type="reset">Limpar</button>
+  </div>
+
+  <table class="tabela-info">
+    <thead>
+      <tr class="tabela-header">
+        <th>CPF</th>
+        <th>Nome</th>
+        <th>Categoria CNH</th>
+        <th>Experiência (anos)</th>
+        <th>Disponibilidade</th>
+        <th>CNH válido até</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-motoristas"></tbody>
+  </table>
+
+  <script>
+    const tabela = document.getElementById("tabela-motoristas");
+    const cpf_input = document.getElementById("cpf_input");
+    const nome_input = document.getElementById("nome_input");
+    const btnPesquisar = document.querySelector(".submit-button");
+    const btnLimpar = document.querySelector(".clean-button");
+
+    const API_URL = "/api/motoristas";
+
+    async function carregarMotoristas() {
+      tabela.innerHTML = `<tr><td colspan="6">Carregando motoristas...</td></tr>`;
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          tabela.innerHTML = `<tr><td colspan="6">Erro ao buscar dados: ${response.status}</td></tr>`;
+          return;
+        }
+
+        const dados = await response.json();
+        tabela.innerHTML = "";
+
+        dados.forEach(m => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${m.cpf}</td>
+            <td>${m.nome}</td>
+            <td>${m.cat_cnh}</td>
+            <td>${m.experiencia_anos}</td>
+            <td>${m.disponibilidade}</td>
+            <td>${m.cnh_valido_ate}</td>
+          `;
+          tabela.appendChild(linha);
+        });
+
+        if (dados.length === 0) {
+          tabela.innerHTML = `<tr><td colspan="6">Nenhum motorista cadastrado.</td></tr>`;
+        }
+
+      } catch (error) {
+        tabela.innerHTML = `<tr><td colspan="6">Falha na comunicação com o servidor.</td></tr>`;
+      }
+    }
+
+    async function filtrarMotoristas() {
+      tabela.innerHTML = `<tr><td colspan="6">Filtrando...</td></tr>`;
+
+      const cpf_busca = cpf_input.value.trim();
+      const nome_busca = nome_input.value.trim().toLowerCase();
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          tabela.innerHTML = `<tr><td colspan="6">Erro ao buscar dados.</td></tr>`;
+          return;
+        }
+
+        const dados = await response.json();
+
+        const resultados = dados.filter(m => {
+          const cpf_match = !cpf_busca || m.cpf === cpf_busca;
+          const nome_match = !nome_busca || m.nome.toLowerCase().includes(nome_busca);
+          return cpf_match && nome_match;
+        });
+
+        tabela.innerHTML = "";
+
+        if (resultados.length === 0) {
+          tabela.innerHTML = `<tr><td colspan="6">Nenhum motorista encontrado.</td></tr>`;
+          return;
+        }
+
+        resultados.forEach(m => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${m.cpf}</td>
+            <td>${m.nome}</td>
+            <td>${m.cat_cnh}</td>
+            <td>${m.experiencia_anos}</td>
+            <td>${m.disponibilidade}</td>
+            <td>${m.cnh_valido_ate}</td>
+          `;
+          tabela.appendChild(linha);
+        });
+
+      } catch (error) {
+        tabela.innerHTML = `<tr><td colspan="6">Erro ao filtrar.</td></tr>`;
+      }
+    }
+
+    btnPesquisar.addEventListener("click", filtrarMotoristas);
+
+    btnLimpar.addEventListener("click", () => {
+      cpf_input.value = "";
+      nome_input.value = "";
+      carregarMotoristas();
+    });
+
+    carregarMotoristas();
+  </script>
+</body>
+</html>

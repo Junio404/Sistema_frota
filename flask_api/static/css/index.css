@@ -65,9 +65,10 @@ body{
     "maintenance report history";
 
     height: 68vh;
-    padding: 2rem 5rem 2rem 5rem;
+    padding: 2rem 5rem 2rem 7rem;
     text-align: center;
     cursor: pointer;
+    place-items: center;
 }
 
 .principal-index{
@@ -81,25 +82,28 @@ body{
     "report history";
 
     height: 68vh;
-    padding: 2rem 5rem 2rem 29rem;
+    padding: 2rem 5rem 2rem 7rem;
     text-align: center;
     cursor: pointer;
+    place-items: center;
+
 }
 
 .principal-report{
-        display: grid;
+    display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 2rem;
 
     grid-template-areas: 
     "person veicles"
-    "report report";
+    "reportum reportdois";
 
     height: 68vh;
-    padding: 2rem 5rem 2rem 29rem;
+    padding: 2rem 5rem 2rem 7rem;
     text-align: center;
     cursor: pointer;
+    place-items: center;
 
 }
 
@@ -179,8 +183,15 @@ body{
     border-radius: 10px;
 }
 
-.principal_card_report{
-    grid-area: report;
+.principal_card_report1{
+    grid-area: reportum;
+    margin: 0.5rem;
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.principal_card_report2{
+    grid-area: reportdois;
     margin: 0.5rem;
     padding: 1rem;
     border-radius: 10px;

@@ -118,9 +118,17 @@ def criar_motorista():
         flash("❌ Ocorreu um erro inesperado.")
         return redirect("/motorista/create")
 
-@bp.route("/veiculo/read")
-def tabela_veiculos():
+@bp.route("/modelo/read")
+def tabela_modelo():
     return render_template("ver_modelos.html")
+
+@bp.route("/motorista/read")
+def tabela_motorista():
+    return render_template("ver_motorista.html")
+
+@bp.route("/veiculo/read")
+def tabela_veiculo():
+    return render_template("ver_veiculo.html")
 
 #---------------------------- CRIAR VEICULO ----------------------------
 @bp.route("/veiculo/create")
@@ -190,81 +198,127 @@ def criar_veiculo():
 
 
 
-DB_PATH = "meu_banco.db"
-
 @bp.route("/criar_viagem", methods=["POST"])
 def criar_viagem_route():
 
-    # 1. Obtenção dos dados brutos do formulário
+    # 1. Dados do formulário
     dados = request.form
     placa_fk = dados.get("placa_fk")
     cpf_fk = dados.get("cpf_fk")
     origem = dados.get("origem")
     destino = dados.get("destino")
-    distancia_km_str = dados.get("distancia_km")
+    distancia_str = dados.get("distancia_km")
     data_chegada = dados.get("data_chegada")
 
-    # 2. Pré-validação de campos obrigatórios/numéricos
+    # 2. Validação básica
     try:
-        if not placa_fk or not cpf_fk or not origem or not destino or not distancia_km_str or not data_chegada:
-             raise ValueError("Todos os campos do formulário são obrigatórios.")
-             
-        distancia_km = float(distancia_km_str)
+        if not placa_fk or not cpf_fk or not origem or not destino or not distancia_str or not data_chegada:
+            raise ValueError("Todos os campos são obrigatórios.")
 
-    except (TypeError, ValueError) as e:
-        flash(f"❌ Erro de formulário: O campo Distância (km) deve ser um número válido. ({e})")
+        distancia_km = float(distancia_str)
+
+    except ValueError as e:
+        flash(f"❌ Erro: {str(e)}")
         return redirect(url_for("routes.forms_viagem"))
-    
-    # 3. Validação de existência de entidades (Motorista/Veículo)
-    if not repo_buscar_veiculo_por_placa(placa_fk, DB_PATH):
+
+    # 3. Buscar entidades
+    veiculo = repo_get_veiculo(placa_fk)
+    if not veiculo:
         flash("❌ Veículo não encontrado.")
         return redirect(url_for("routes.forms_viagem"))
 
-    if not repo_buscar_motorista_por_cpf(cpf_fk, DB_PATH):
+    motorista = repo_get_motorista(cpf_fk)
+    if not motorista:
         flash("❌ Motorista não encontrado.")
         return redirect(url_for("routes.forms_viagem"))
 
+    # 4. Modelo Pydantic
     try:
-        #Criação do objeto Pydantic (Validação de tipo e formato de dados)
-        # Se Pydantic falhar (ex: formato de data incorreto), lança ValidationError.
-        dados_viagem = ViagemCreate(
+        viagem = ViagemCreate(
             placa_fk=placa_fk,
             cpf_fk=cpf_fk,
             origem=origem,
             destino=destino,
             distancia_km=distancia_km,
-            data_chegada=data_chegada
+            data_chegada=data_chegada,
         )
+    except Exception as e:
+        flash(f"❌ Erro nos dados da viagem: {str(e)}")
+        return redirect(url_for("routes.forms_viagem"))
 
-        # 5. Chama o Orquestrador do Repositório (Validações de Negócio + Persistência)
-        # O orquestrador 'criar_viagem' irá:
-        # - Validar status do Motorista (ATIVO/EM_VIAGEM/INATIVO)
-        # - Validar status do Veículo (ATIVO/EM_VIAGEM/MANUTENCAO)
-        # - Validar compatibilidade CNH x Veículo
-        # - Calcular hodômetro e consumo de combustível
-        # - VALIDAR COMBUSTÍVEL SUFICIENTE
-        # - Inserir Viagem e Histórico, e Atualizar status/KM/litros
-        
-        resultado = criar_viagem(dados_viagem)
+    # 5. REGRAS DE NEGÓCIO — usando dados que seu repo oferece
+
+    # Status do motorista
+    if motorista["DISPONIBILIDADE"] != Status_motorista.ATIVO.value:
+        flash("❌ Motorista não está disponível.")
+        return redirect(url_for("routes.forms_viagem"))
+
+    # Status do veículo
+    if veiculo["STATUS"] != Veiculo_status.ATIVO.value:
+        flash("❌ Veículo não está disponível.")
+        return redirect(url_for("routes.forms_viagem"))
+
+    # Hodômetro atual
+    hodometro_atual = repo_get_quilometragem(placa_fk)
+    if hodometro_atual is None:
+        flash("❌ Erro ao obter quilometragem do veículo.")
+        return redirect(url_for("routes.forms_viagem"))
+
+    hodometro_final = hodometro_atual + distancia_km
+
+    # Consumo e combustível atual
+    consumo_medio, litros_atual = repo_get_consumo(placa_fk)
+    litros_necessarios = distancia_km / consumo_medio
+
+    if litros_necessarios > litros_atual:
+        flash("❌ Combustível insuficiente para realizar a viagem.")
+        return redirect(url_for("routes.forms_viagem"))
+
+    novo_nivel_combustivel = litros_atual - litros_necessarios
+
+    # 6. Persistência — todas as operações dentro da mesma transação
+    try:
+        with conectar() as conn:
+            # Inserir viagem
+            repo_insert_viagem(
+                conn,
+                viagem,
+                hodometro_atual,
+                hodometro_final
+            )
+
+            # Inserir histórico
+            repo_insert_historico(conn, viagem)
+
+            # Atualizar veículo
+            repo_update_veiculo_viagem(
+                conn,
+                placa_fk,
+                hodometro_final
+            )
+
+            # Atualizar combustível
+            repo_update_combustivel(
+                conn,
+                placa_fk,
+                novo_nivel_combustivel
+            )
+
+            # Atualizar motorista
+            repo_update_motorista_viagem(
+                conn,
+                cpf_fk
+            )
+
+            conn.commit()
 
         flash("🚗💨 Viagem registrada com sucesso!")
         return redirect(url_for("routes.index"))
 
-    except ValidationError as e:
-        # Captura erros de validação do modelo Pydantic (ex: data_chegada inválida)
-        flash(f"❌ Erro no formato dos dados (Pydantic): {e.errors()[0].get('msg', 'Erro desconhecido')}")
-        return redirect(url_for("routes.forms_viagem"))
-        
-    except ValueError as e:
-        # Captura erros de validação de negócio (lançados por funções internas do repo)
-        flash(f"❌ Erro de Validação: {str(e)}")
-        return redirect(url_for("routes.forms_viagem"))
-        
     except Exception as e:
-        # Captura erros inesperados (DB, conexão, etc.)
-        flash(f"❌ Erro inesperado ao criar a viagem: {str(e)}")
+        flash(f"❌ Erro ao registrar viagem: {str(e)}")
         return redirect(url_for("routes.forms_viagem"))
-    
+
     
 @bp.route("/veiculo/abastecimento")
 def forms_abastecimento():
@@ -443,9 +497,110 @@ def api_marcas_modelos():
 
 
 
+@bp.route("/api/veiculos")
+def api_veiculos():
+
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                V.PLACA,
+                V.ANO,
+                V.TIPO_VEICULO,
+                V.QUILOMETRAGEM,
+                V.QTD_LITROS,
+                V.CONSUMO_MEDIO_KM_L,
+                V.TIPO_COMBUSTIVEL,
+                V.STATUS,
+
+                MO.ID AS modelo_id,
+                MO.NOME_MODELO,
+                MO.TIPO_VEICULO AS modelo_tipo_veiculo,
+                MO.TIPO_COMBUSTIVEL AS modelo_tipo_combustivel,
+                MO.QTD_LITROS AS modelo_qtd_litros,
+                MO.CONSUMO_MEDIO_KM_L AS modelo_consumo,
+                
+                M.ID AS marca_id,
+                M.NOME AS marca_nome
+
+            FROM VEICULO V
+            JOIN MODELO MO ON V.MODELO_FK = MO.ID
+            JOIN MARCA M ON M.ID = MO.MARCA_FK
+            ORDER BY M.NOME, MO.NOME_MODELO, V.PLACA
+        """)
+
+        rows = cur.fetchall()
+
+    veiculos = []
+
+    for r in rows:
+        veiculos.append({
+            "placa": r["PLACA"],
+            "ano": r["ANO"],
+            "quilometragem": r["QUILOMETRAGEM"],
+            "tipo_veiculo": r["TIPO_VEICULO"],
+            "qtd_litros": r["QTD_LITROS"],
+            "consumo_medio_km_l": r["CONSUMO_MEDIO_KM_L"],
+            "tipo_combustivel": r["TIPO_COMBUSTIVEL"],
+            "status": r["STATUS"],
+
+            "modelo": {
+                "id": r["modelo_id"],
+                "nome_modelo": r["NOME_MODELO"],
+                "tipo_veiculo": r["modelo_tipo_veiculo"],
+                "tipo_combustivel": r["modelo_tipo_combustivel"],
+                "qtd_litros": r["modelo_qtd_litros"],
+                "consumo_medio_km_l": r["modelo_consumo"]
+            },
+
+            "marca": {
+                "id": r["marca_id"],
+                "nome": r["marca_nome"]
+            }
+        })
+
+    return jsonify(veiculos)
 
 
 
+@bp.route("/api/motoristas")
+def api_motoristas():
 
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                MT.CPF,
+                MT.CAT_CNH,
+                MT.EXP_ANOS,
+                MT.DISPONIBILIDADE,
+                MT.CNH_VALIDO_ATE,
+                
+                P.NOME AS pessoa_nome
+
+            FROM MOTORISTA MT
+            JOIN PESSOA P ON P.CPF = MT.CPF
+            ORDER BY P.NOME
+        """)
+
+        rows = cur.fetchall()
+
+    motoristas = []
+
+    for r in rows:
+        motoristas.append({
+            "cpf": r["CPF"],
+            "nome": r["pessoa_nome"],
+            "cat_cnh": r["CAT_CNH"],
+            "experiencia_anos": r["EXP_ANOS"],
+            "disponibilidade": r["DISPONIBILIDADE"],
+            "cnh_valido_ate": r["CNH_VALIDO_ATE"]
+        })
+
+    return jsonify(motoristas)
 
 

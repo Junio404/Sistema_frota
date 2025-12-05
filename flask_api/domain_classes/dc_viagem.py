@@ -1,56 +1,65 @@
+# domínio/viagem.py
+from datetime import date
+from flask_api.models.enums import Status_motorista, Status_viagem, Veiculo_status, Tipo_evento
+
 class Viagem:
-    def __init__(self, id: int, placa_fk: str, cpf_fk: str, origem: str, destino: str,
-                 distancia_km: float, data_saida, data_chegada,
-                 hodometro_saida: float, hodometro_chegada: float):
+    def __init__(self, placa_fk, cpf_fk, origem, destino, distancia_km, data_chegada):
+        self.placa_fk = placa_fk
+        self.cpf_fk = cpf_fk
+        self.origem = origem
+        self.destino = destino
+        self.distancia_km = distancia_km
+        self.data_chegada = data_chegada
 
-        self.__id = id
-        self.__placa_fk = placa_fk
-        self.__cpf_fk = cpf_fk
-        self.__origem = origem
-        self.__destino = destino
-        self.__distancia_km = distancia_km
-        self.__data_saida = data_saida
-        self.__data_chegada = data_chegada
-        self.__hodometro_saida = hodometro_saida
-        self.__hodometro_chegada = hodometro_chegada
+    # ==========================================================
+    # Validações de domínio (sem banco!)
+    # ==========================================================
 
+    @staticmethod
+    def validar_motorista_disponivel(status_motorista: str):
+        if status_motorista == Status_motorista.INATIVO.value:
+            raise ValueError("Motorista INATIVO não pode iniciar viagem.")
+        if status_motorista == Status_motorista.EM_VIAGEM.value:
+            raise ValueError("Motorista já está em viagem.")
 
-    @property
-    def id(self):
-        return self.__id
+    @staticmethod
+    def validar_veiculo_disponivel(status_veiculo: str):
+        if status_veiculo == Veiculo_status.INATIVO.value:
+            raise ValueError("Veículo INATIVO não pode iniciar viagem.")
+        if status_veiculo == Veiculo_status.MANUTENCAO.value:
+            raise ValueError("Veículo em manutenção não pode iniciar viagem.")
+        if status_veiculo == Veiculo_status.EM_VIAGEM.value:
+            raise ValueError("Veículo já está em viagem.")
 
-    @property
-    def placa_fk(self):
-        return self.__placa_fk
+    @staticmethod
+    def validar_categoria_cnh(cat_motorista: str, tipo_veiculo: str):
+        ordem = ["A", "B", "C", "D", "E"]
+        categoria_minima = {
+            "MOTO": "A",
+            "CARRO": "B",
+            "CAMINHAO": "C"
+        }.get(tipo_veiculo)
 
-    @property
-    def cpf_fk(self):
-        return self.__cpf_fk
+        if categoria_minima is None:
+            raise ValueError(f"Tipo de veículo '{tipo_veiculo}' inválido.")
 
-    @property
-    def origem(self):
-        return self.__origem
+        if ordem.index(cat_motorista) < ordem.index(categoria_minima):
+            raise ValueError(
+                f"CNH incompatível. Para dirigir {tipo_veiculo}, "
+                f"mínimo é {categoria_minima}, mas motorista possui {cat_motorista}."
+            )
 
-    @property
-    def destino(self):
-        return self.__destino
+    @staticmethod
+    def calcular_hodometro(quilometragem_atual: float, distancia_km: float) -> float:
+        if distancia_km <= 0:
+            raise ValueError("A distância deve ser maior que zero.")
+        return quilometragem_atual + distancia_km
 
-    @property
-    def distancia_km(self):
-        return self.__distancia_km
+    @staticmethod
+    def calcular_combustivel(distancia_km: float, consumo_medio: float, qtd_litros_atual: float):
+        litros_gastos = distancia_km / consumo_medio
+        
+        if qtd_litros_atual - litros_gastos < 0:
+            raise ValueError("Viagem Longa para a quantidade de litros de combustivel que o carro tem!")
+        return qtd_litros_atual - litros_gastos
 
-    @property
-    def data_saida(self):
-        return self.__data_saida
-
-    @property
-    def data_chegada(self):
-        return self.__data_chegada
-
-    @property
-    def hodometro_saida(self):
-        return self.__hodometro_saida
-
-    @property
-    def hodometro_chegada(self):
-        return self.__hodometro_chegada
