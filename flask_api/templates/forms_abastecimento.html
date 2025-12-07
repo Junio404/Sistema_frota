@@ -53,28 +53,56 @@
   </body>
 
   <script>
-const tipo_combustivel = document.getElementById("tipo_combusitvel");
-const litros = document.getElementById("litros");   // corrigido
+const placaInput = document.getElementById("placa_fk");
+const litrosInput = document.getElementById("litros");
 const calcularValor = document.querySelector(".calcular-valor");
-const valor = document.querySelector(".valor");     // corrigido
+const valor = document.querySelector(".valor");
 
 async function calcular_valor() {
-  valor.innerHTML = "Calculando...";
+    valor.innerHTML = "Calculando...";
 
-  const response = await fetch("{{ url_for('static', filename='data/settings.json') }}");
-  const dados = await response.json();
+    const placa = placaInput.value.trim().toUpperCase();
+    const litros = parseFloat(litrosInput.value);
 
-  const preco = dados.valor_litro_combustivel[tipo_combustivel.value];
+    if (!placa || isNaN(litros)) {
+        valor.innerHTML = "Preencha placa e litros corretamente.";
+        return;
+    }
 
-  if (!preco) {
-    valor.innerHTML = "Combustível inválido";
-    return;
-  }
+    // 1️⃣ Buscar veículos na API
+    const responseVeiculos = await fetch("/api/veiculos");
+    const veiculos = await responseVeiculos.json();
 
-  valor.innerHTML = `R$ ${(litros.value * preco).toFixed(2)}`;
+    // 2️⃣ Achar o veículo pela placa
+    const veiculo = veiculos.find(v => v.placa.toUpperCase() === placa);
+
+    if (!veiculo) {
+        valor.innerHTML = "Placa não encontrada.";
+        return;
+    }
+
+    const tipoCombustivel = veiculo.tipo_combustivel;
+
+    // 3️⃣ Buscar settings.json
+    const responseSettings = await fetch("{{ url_for('static', filename='data/settings.json') }}");
+    const settings = await responseSettings.json();
+
+    const precoLitro = settings.valor_litro_combustivel[tipoCombustivel];
+
+    if (!precoLitro) {
+        valor.innerHTML = "Tipo de combustível inválido.";
+        return;
+    }
+
+    // 4️⃣ Calcular
+    const total = litros * precoLitro;
+
+    // 5️⃣ Mostrar resultado
+    valor.innerHTML = `R$ ${total.toFixed(2)}`;
 }
 
 calcularValor.addEventListener("click", calcular_valor);
+
 
     
   </script>

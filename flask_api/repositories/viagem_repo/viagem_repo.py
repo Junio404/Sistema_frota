@@ -126,7 +126,7 @@ def repo_insert_viagem(conn, viagem, hodometro_atual, hodometro_final):
     ))
 
 
-def repo_insert_historico(conn, viagem):
+def repo_insert_evento_viagem(conn, viagem):
     resumo = f"Viagem de {viagem.origem} para {viagem.destino}"
 
     cur = conn.cursor()

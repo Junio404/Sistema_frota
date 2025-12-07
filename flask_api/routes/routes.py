@@ -293,7 +293,7 @@ def criar_viagem_route():
             )
 
             # Inserir histórico
-            repo_insert_historico(conn, viagem)
+            repo_insert_evento_viagem(conn, viagem)
 
             # Atualizar veículo
             repo_update_veiculo_viagem(
@@ -329,88 +329,94 @@ def criar_viagem_route():
 def forms_abastecimento():
     return render_template("forms_abastecimento.html")
     
-@bp.route("/veiculo/abastecimento", methods=["POST"])
+
+@bp.route("/criar_abastecimento", methods=["POST"])
 def criar_abastecimento():
-    dados = request.form
-    
-
-    #-------------- Obtenção + pré-validação -----------------
-
-    placa_fk = dados.get("placa_fk", "").upper()
-    litros_str = dados.get("litros")
-
     try:
-        if not placa_fk or not litros_str:
-            raise ValueError("Todos os campos do formulário são obrigatórios.")
-        
-        litros = float(litros_str)
+        placa_fk = request.form.get("placa_fk").upper()
+        litros = float(request.form.get("litros"))
+        hodometro = get_quilometragem_atual_abastecimento(placa_fk)
 
-    except (TypeError, ValueError) as e:
-        flash(f"❌ Erro de formulário: Campo 'litros' inválido. ({e})")
-        return redirect(url_for("routes.forms_abastecimento"))
+        # ---------------------------------------------
+        # 1 — VALIDAR SE A PLACA EXISTE
+        # ---------------------------------------------
+        if not placa_existe(placa_fk):
+            flash("❌ Placa não cadastrada.")
+            return redirect(url_for("routes.forms_abastecimento"))
 
-    # ----------------Validações de existência no sistema ---------------
+        # ---------------------------------------------
+        # 2 — BUSCAR TIPO DE COMBUSTÍVEL DO VEÍCULO
+        # ---------------------------------------------
+        tipo_combustivel = buscar_tipo_combustivel(placa_fk)
+        if tipo_combustivel is None:
+            flash("❌ Tipo de combustível do veículo não encontrado.")
+            return redirect(url_for("routes.forms_abastecimento"))
 
-    if not placa_existe(placa_fk):
-        flash("❌ Placa não está cadastrada no sistema.")
-        return redirect(url_for("routes.forms_abastecimento"))
-    
-    tipo_combustivel = buscar_tipo_combustivel(placa_fk)
+        # ---------------------------------------------
+        # 3 — VALIDAR QUANTIDADE DE LITROS
+        # ---------------------------------------------
+        qtd_litros_max = get_qtd_litros_abastecimento(placa_fk)
 
-    if not tipo_combustivel:
-        flash("❌ Esse veículo não possui tipo de combustível cadastrado.")
-        return redirect(url_for("routes.forms_abastecimento"))
+        try:
+            validar_litros_qtd_combustivel(litros, qtd_litros_max)
+        except ValueError as e:
+            flash(f"❌ {str(e)}")
+            return redirect(url_for("routes.forms_abastecimento"))
 
-    # ----------------Calculo do Valor---------------
+        # ---------------------------------------------
+        # 4 — CALCULAR VALOR A PAGAR
+        # ---------------------------------------------
+        try:
+            valor_pago = valor_a_pagar(tipo_combustivel, litros)
+        except ValueError as e:
+            flash(f"❌ {str(e)}")
+            return redirect(url_for("routes.forms_abastecimento"))
 
-    try:
-        valor = valor_a_pagar(tipo_combustivel, litros)
+        # ---------------------------------------------
+        # 5 — VALIDAR COM Pydantic ANTES DE CRIAR OBJETO
+        # ---------------------------------------------
+        try:
+            dados_validados = Abastecimento_create(
+                placa_fk=placa_fk,
+                tipo_combustivel=tipo_combustivel,
+                data=date.today(),
+                litros=litros,
+                valor_pago=valor_pago,
+                hodometro=hodometro
+            )
+        except ValidationError as e:
+            flash(f"❌ Dados inválidos: {e.errors()}")
+            return redirect(url_for("routes.forms_abastecimento"))
 
-    except ValueError as e:
-        flash(f"❌ Erro de Validação: {str(e)}")
-        return redirect(url_for("routes.forms_abastecimento"))
+        # ---------------------------------------------
+        # 6 — CRIAR OBJETO ABASTECIMENTO
+        # ---------------------------------------------
+        abastecimento = Abastecimento(
+            id=None,
+            placa_fk=dados_validados.placa_fk,
+            tipo_combustivel=dados_validados.tipo_combustivel.value
+                if hasattr(dados_validados.tipo_combustivel, "value")
+                else dados_validados.tipo_combustivel,
+            data=dados_validados.data,
+            litros=dados_validados.litros,
+            valor_pago=dados_validados.valor_pago,
+            hodometro=dados_validados.hodometro
+        )
 
-    except Exception as e:
-        flash(f"❌ Erro inesperado no cálculo: {str(e)}")
-        return redirect(url_for("routes.forms_abastecimento"))
+        # ---------------------------------------------
+        # 7 — INSERIR NO BANCO
+        # ---------------------------------------------
+        inserir_abastecimento(abastecimento)
+        insert_evento_abastecimento(abastecimento)
+        atualizar_litros_combustivel_abastecimento(litros, qtd_litros_max, placa_fk)
 
-    # ----------------Validação com PYDANTIC ---------------
-
-    try:
-        raw_data = {
-            "placa_fk": placa_fk,
-            "tipo_combustivel": tipo_combustivel,
-            "data": date.today().isoformat(),
-            "litros": litros,
-            "valor_pago": valor,
-            "hodometro": get_quilometragem_atual(placa_fk)
-        }
-
-        data = Abastecimento_create(**raw_data)
-
-    except ValidationError as e:
-        flash(f"❌ Erro no formato dos dados (Pydantic): {e.errors()[0].get('msg', 'Erro desconhecido')}")
-        return redirect(url_for("routes.forms_abastecimento"))
-
-    except Exception as e:
-        flash(f"❌ Erro inesperado ao validar dados: {str(e)}")
-        return redirect(url_for("routes.forms_abastecimento"))
-
-    # ----------------Adicionar ao Banco de Dados ---------------
-    
-    try:
-        resultado = inserir_abastecimento(data)
         flash("⛽ Abastecimento registrado com sucesso!")
         return redirect(url_for("routes.index"))
 
-    except ValueError as e:
-        flash(f"❌ Erro ao salvar abastecimento: {str(e)}")
-        return redirect(url_for("routes.forms_abastecimento"))
-
     except Exception as e:
-        flash(f"❌ Erro inesperado ao salvar no banco de dados: {str(e)}")
+        print("Erro ao cadastrar abastecimento:", e)
+        flash("❌ Erro inesperado ao registrar abastecimento.")
         return redirect(url_for("routes.forms_abastecimento"))
-    
     
     
     
