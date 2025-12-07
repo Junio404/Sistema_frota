@@ -1,15 +1,22 @@
+from dataclasses import dataclass, field
+
+@dataclass
 class Pessoa:
+    _id: int | None
+    _nome: str = field(init=False, repr=False)
+    _cpf: str = field(init=False, repr=False)
+
     def __init__(self, id: int | None, nome: str, cpf: str):
         self._id = id
         self.nome = nome
         self.cpf = cpf
 
-    # -------------------- ID --------------------
+    # ID
     @property
     def id(self):
         return self._id
 
-    # -------------------- NOME --------------------
+    # NOME
     @property
     def nome(self):
         return self._nome
@@ -19,15 +26,13 @@ class Pessoa:
         if not value or len(value.strip()) < 2:
             raise ValueError("Nome inválido.")
 
-        # restringe somente caracteres proibidos
         caracteres_invalidos = set("@#$%¨&*()[];:<>{}º°?+-_=§'")
-
         if any(char in caracteres_invalidos for char in value):
             raise ValueError("Nome inválido de pessoa.")
 
         self._nome = value.strip()
 
-    # -------------------- CPF --------------------
+    # CPF
     @property
     def cpf(self):
         return self._cpf

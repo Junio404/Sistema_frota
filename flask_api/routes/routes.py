@@ -181,6 +181,11 @@ def criar_veiculo():
         # Dados obtidos do banco (substituem as 4 buscas individuais)
         **dados_modelo
     }
+    
+    if raw_data["quilometragem"] < 0:
+        flash("❌ Quilometragem Inválida")
+        return redirect(url_for("routes.forms_veiculo"))
+        
 
     try:
         data = Veiculo_create(**raw_data)

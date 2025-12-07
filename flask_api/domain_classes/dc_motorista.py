@@ -1,22 +1,32 @@
+from dataclasses import dataclass, field
 from datetime import date
 from flask_api.domain_classes.dc_pessoa import Pessoa
-from flask_api.models.enums import Status_motorista
 
-
+@dataclass
 class Motorista(Pessoa):
+    _cat_cnh: str = field(init=False, repr=False)
+    _exp_anos: int = field(init=False, repr=False)
+    _disponibilidade: str = field(init=False, repr=False)
+    _cnh_valido_ate: date = field(init=False, repr=False)
 
-    def __init__(self, id, nome, cpf, cat_cnh, exp_anos, disponibilidade, cnh_valido_ate):
+    def __init__(
+        self,
+        id,
+        nome,
+        cpf,
+        cat_cnh,
+        exp_anos,
+        disponibilidade,
+        cnh_valido_ate
+    ):
         super().__init__(id=id, nome=nome, cpf=cpf)
 
-        # setters (cada um faz sua validação)
         self.cat_cnh = cat_cnh
         self.exp_anos = exp_anos
         self.disponibilidade = disponibilidade
         self.cnh_valido_ate = cnh_valido_ate
 
-    # -----------------------
     # CAT CNH
-    # -----------------------
     @property
     def cat_cnh(self):
         return self._cat_cnh
@@ -27,9 +37,7 @@ class Motorista(Pessoa):
             raise ValueError("Categoria de CNH inválida.")
         self._cat_cnh = value
 
-    # -----------------------
     # EXP ANOS
-    # -----------------------
     @property
     def exp_anos(self):
         return self._exp_anos
@@ -40,9 +48,7 @@ class Motorista(Pessoa):
             raise ValueError("Experiência inválida.")
         self._exp_anos = value
 
-    # -----------------------
     # DISPONIBILIDADE
-    # -----------------------
     @property
     def disponibilidade(self):
         return self._disponibilidade
@@ -51,13 +57,13 @@ class Motorista(Pessoa):
     def disponibilidade(self, value):
         if hasattr(self, "_disponibilidade") and value == self._disponibilidade:
             raise ValueError("O motorista já está neste estado.")
+
         if value not in ("ATIVO", "INATIVO"):
             raise ValueError("Status de motorista inválido.")
+
         self._disponibilidade = value
 
-    # -----------------------
     # CNH VALIDO ATÉ
-    # -----------------------
     @property
     def cnh_valido_ate(self):
         return self._cnh_valido_ate
