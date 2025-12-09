@@ -57,12 +57,13 @@ body{
 .principal{
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
     gap: 2rem;
 
     grid-template-areas: 
     "person veicles fuel"
-    "maintenance report history";
+    "maintenance report update"
+    "abacaxi history None";
 
     height: 68vh;
     padding: 2rem 5rem 2rem 7rem;
@@ -114,6 +115,7 @@ body{
   border: 1px solid #000000;
     
 }
+
 
 .principal_card{
     display: flex;
@@ -206,9 +208,20 @@ body{
 
 .principal_card_history{
     grid-area: history;
+    height: 23.5rem;  /* ok */
+    width: 62.5rem;    /* ocupa toda a célula da grid */
     margin: 0.5rem;
-    padding: 1rem;
+    padding: 0.7rem;
+
     border-radius: 10px;
+}
+
+.principal_card_update{
+    grid-area: update;
+
+    height: 25em;  /* ok */
+    width: 62.5rem;    /* ocupa toda a célula da grid */
+    place-self: center;
 }
 
 

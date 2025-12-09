@@ -612,6 +612,64 @@ def atualizar_motorista_route():
         return redirect("/motorista/update")
 
 
+@bp.route("/veiculo/update")
+def update_veiculo():
+    return render_template("atualizar_veiculo.html")
+
+@bp.route("/atualizar_veiculo", methods=["POST"])
+def atualizar_veiculo_route():
+    try:
+        placa = request.form.get("placa")
+
+        if not placa_existe(placa):
+            flash("❌ Placa não encontrada no sistema.")
+            return redirect("/veiculo/update")
+
+        dados_update = {}
+
+        # ------------------------------------------
+        # Consumo (opcional)
+        # ------------------------------------------
+        consumo = request.form.get("consumo_medio_km_l")
+        if consumo:
+            try:
+                consumo_float = float(consumo)
+                if consumo_float <= 0:
+                    raise ValueError("Consumo médio inválido.")
+                dados_update["CONSUMO_MEDIO_KM_L"] = consumo_float
+            except:
+                flash("❌ Consumo médio inválido.")
+                return redirect("/veiculo/update")
+
+        # ------------------------------------------
+        # Status (opcional)
+        # ------------------------------------------
+        status = request.form.get("status")
+        if status:
+            try:
+                Veiculo_status(status)  # valida enum
+                dados_update["STATUS"] = status
+            except:
+                flash("❌ Status inválido.")
+                return redirect("/veiculo/update")
+
+        # Se nada foi enviado, não faz update
+        if not dados_update:
+            flash("ℹ Nenhum campo enviado para atualização.")
+            return redirect("/veiculo/update")
+
+        # ------------------------------------------
+        # Persistir no banco
+        # ------------------------------------------
+        atualizar_veiculo(placa, dados_update)
+
+        flash("✅ Veículo atualizado com sucesso!")
+        return redirect(url_for("routes.index"))
+
+    except Exception as e:
+        print("Erro inesperado:", e)
+        flash("❌ Ocorreu um erro ao atualizar o veículo.")
+        return redirect("/veiculo/update")
 
 #--------------------- DELETE ROUTES -------------------------------
 
@@ -640,11 +698,39 @@ def deletar_motorista_route():
         return redirect("/motorista/deletar")
 
     except Exception as e:
-        print(f"Erro inesperado ao atualizar motorista: {e}")
+        print(f"Erro inesperado ao deletar motorista: {e}")
         flash("❌ Erro inesperado no sistema.")
         return redirect("/motorista/deletar")
     
-#------------------------ API / JSON DO BANCO ------------------------------------
+@bp.route("/veiculo/deletar")  
+def delete_veiculo():
+    return render_template("deletar_veiculo.html")
+
+@bp.route("/deletar_veiculo", methods=["POST"])
+def deletar_veiculo_route():
+    try:
+        placa = request.form.get("placa")
+        
+        if not placa_existe(placa):
+            flash("❌ Insira uma PLACA válida para deletar.")
+            return redirect("/veiculo/deletar")
+        
+        veiculo_deletado = deletar_veiculo(placa)
+        flash("✅ Veiculo Deletado com sucesso!")
+        return redirect(url_for('routes.index'))
+        
+    except ValueError as e:
+        flash(f"❌ Erro de validação: {e}")
+        return redirect("/veiculo/deletar")
+
+    except Exception as e:
+        print(f"Erro inesperado ao deletar veiculo: {e}")
+        flash("❌ Erro inesperado no sistema.")
+        return redirect("/veiculo/deletar")
+    
+
+    
+# ------------------------ API / JSON DO BANCO ------------------------------------
 
 @bp.route("/api/marcas_modelos")
 def api_marcas_modelos():

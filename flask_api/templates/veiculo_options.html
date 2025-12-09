@@ -9,6 +9,7 @@
       href="{{url_for('static', filename='css/index.css')}}"
     />
   </head>
+
   <body>
     {% with messages = get_flashed_messages() %} {% if messages %}
     <div class="flash-messages">
@@ -43,7 +44,8 @@
         </div>
       </a>
 
-      <div class="principal_card_fuel principal_card">
+      <a href="{{url_for('routes.delete_veiculo')}}" class="card_link">
+        <div class="principal_card_fuel principal_card">
         <img
           class="principal_card_img"
           src="{{url_for('static',filename='img/delete.svg')}}"
@@ -51,6 +53,7 @@
         />
         <p class="principal_card_name">Deletar Veículo</p>
       </div>
+      </a>
 
       <a href="{{url_for('routes.forms_manutencao')}}" class="card_link">
         <div class="principal_card_maintence principal_card">
@@ -74,6 +77,7 @@
         </div>
       </a>
 
+
       <div class="principal_card_history principal_card">
         <img
           class="principal_card_img"
@@ -82,6 +86,16 @@
         />
         <p class="principal_card_name">Histórico de Veiculo</p>
       </div>
+            <a href="{{url_for("routes.update_veiculo")}}" class="card_link">
+        <div class="principal_card_update principal_card">
+        <img
+          class="principal_card_img"
+          src="{{url_for('static',filename='img/update.svg')}}"
+          alt=""
+        />
+        <p class="principal_card_name">Atualizar Veiculo</p>
+      </div>
+      </a>
     </main>
   </body>
 </html>

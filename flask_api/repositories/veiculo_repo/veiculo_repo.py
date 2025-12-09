@@ -76,3 +76,72 @@ def placa_existe(placa: str) -> bool:
         )
         
         return cur.fetchone() is not None
+    
+    
+def atualizar_veiculo(placa: str, campos: dict):
+    """
+    Atualiza apenas os campos enviados no dicionário `campos`.
+    Exemplo: {"CONSUMO_MEDIO_KM_L": 15.2}
+    """
+    if not campos:
+        return False
+
+    set_clause = ", ".join([f"{col} = ?" for col in campos.keys()])
+    valores = list(campos.values())
+    valores.append(placa)
+
+    with sqlite3.connect(Config.DATABASE) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f"""
+            UPDATE VEICULO
+            SET {set_clause}
+            WHERE PLACA = ?
+            """,
+            valores
+        )
+        conn.commit()
+
+    return True
+
+
+
+def atualizar_veiculo(placa: str, campos: dict):
+    """
+    Atualiza apenas os campos enviados no dicionário `campos`.
+    Exemplo: {"CONSUMO_MEDIO_KM_L": 15.2}
+    """
+    if not campos:
+        return False
+
+    set_clause = ", ".join([f"{col} = ?" for col in campos.keys()])
+    valores = list(campos.values())
+    valores.append(placa)
+
+    with sqlite3.connect(Config.DATABASE) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f"""
+            UPDATE VEICULO
+            SET {set_clause}
+            WHERE PLACA = ?
+            """,
+            valores
+        )
+        conn.commit()
+
+    return True
+
+
+def deletar_veiculo(placa: str):
+    with sqlite3.connect(Config.DATABASE) as conn:
+        cur = conn.cursor()
+        
+        cur.execute("""
+            DELETE FROM VEICULO 
+            WHERE PLACA = ?
+        """, (placa,))
+        
+        conn.commit()
+
+    return f"Veiculo com a Placa {placa} deletado permanentemente!"
