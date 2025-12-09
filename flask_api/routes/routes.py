@@ -536,7 +536,6 @@ def atualizar_motorista_route():
             return redirect("/motorista/update")
 
         # ------------ 2. Buscar motorista original ------------
-        # Usamos o bloco de busca que estava na sua rota original
         with sqlite3.connect(Config.DATABASE) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -560,9 +559,8 @@ def atualizar_motorista_route():
             flash("❌ Motorista não encontrado após a busca inicial.")
             return redirect("/motorista/update")
 
-        # ------------ 3. Coletar dados e aplicar Fallback ------------
-        # Se o campo do formulário for None/vazio, usa o valor original.
-        # CORREÇÃO: Não usamos str() no fallback de cnh_valido_ate
+        # ------------ Coletar dados e aplicar Fallback ------------
+
         raw_data = {
             "cat_cnh": request.form.get("cnh") or motorista_original.cat_cnh,
             "exp_anos": request.form.get("experiencia") or motorista_original.exp_anos,
@@ -571,11 +569,10 @@ def atualizar_motorista_route():
         }
         
 
-        # ------------ 4. Validar e Converter com Pydantic ------------
-        # A Pydantic agora valida e converte cnh_valido_ate (str -> date)
-        # e disponibilidade (str -> Status_motorista)
+        # ------------ Validar e Converter com Pydantic ------------
+
         pydantic_data = Motorista_update(
-            # A Pydantic precisa dos dados formatados (int, date)
+
             id=motorista_original.id, 
             cat_cnh=raw_data["cat_cnh"],
             exp_anos=int(raw_data["exp_anos"]), # Deve ser convertido para int antes de passar para Pydantic
@@ -583,27 +580,22 @@ def atualizar_motorista_route():
             cnh_valido_ate=raw_data["cnh_valido_ate"]
         )
 
-        # ------------ 5. Preparar dados para o Repositório ------------
+        # ------------ Preparar dados para o Repositório ------------
         
         # O repositório espera um dicionário de dados no formato do banco de dados (colunas)
         dados_para_db = {
             "CAT_CNH": pydantic_data.cat_cnh,
-            # Se exp_anos for Optional[int] e None no Pydantic, precisamos tratar. 
-            # Como a Pydantic preencheu com o fallback, ele deve ser int.
+
             "EXP_ANOS": pydantic_data.exp_anos,
             
-            # O .value converte o objeto Status_motorista (criado pelo Pydantic) de volta para string
+
             "DISPONIBILIDADE": pydantic_data.disponibilidade.value,
             
-            # O cnh_valido_ate é um objeto date (válido após o validator)
+            
             "CNH_VALIDO_ATE": pydantic_data.cnh_valido_ate
         }
-        
-        # Filtra Nones/vazios se necessário (seu Pydantic está garantindo valores, 
-        # mas essa etapa é importante se houver campos que são Optional no Pydantic).
-        # Para este caso, como usamos o fallback, os campos não devem ser None.
 
-        # ------------ 6. Persistir (Atualizar) ------------
+        # ------------ Persistir (Atualizar) ------------
         # Chama a função de atualização, passando o ID e o dicionário de dados
         atualizar_motorista(motorista_original.id, dados_para_db)
 
@@ -621,8 +613,37 @@ def atualizar_motorista_route():
 
 
 
+#--------------------- DELETE ROUTES -------------------------------
+
+@bp.route("/motorista/deletar")
+def delete_motorista():
+    return render_template("deletar_motorista.html")
 
 
+@bp.route("/deletar_motorista", methods=["POST"])
+def deletar_motorista_route():
+    try:
+        cpf = request.form.get("cpf")
+        # Recebe o cpf do formulário e valida se ele existe no Banco de Dados
+        if not cpf_existe(cpf):
+            flash("❌ Insira um CPF válido para deletar.")
+            return redirect("/motorista/deletar")
+
+
+# ------------ DELETAR ------------
+        motorista_deletado = deletar_motorista(cpf)
+        flash("✅ Motorista Deletado com sucesso!")
+        return redirect(url_for('routes.index'))
+        
+    except ValueError as e:
+        flash(f"❌ Erro de validação: {e}")
+        return redirect("/motorista/deletar")
+
+    except Exception as e:
+        print(f"Erro inesperado ao atualizar motorista: {e}")
+        flash("❌ Erro inesperado no sistema.")
+        return redirect("/motorista/deletar")
+    
 #------------------------ API / JSON DO BANCO ------------------------------------
 
 @bp.route("/api/marcas_modelos")

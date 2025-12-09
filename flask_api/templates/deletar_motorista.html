@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deletar Motorista</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/forms.css')}}"
+    />
+  </head>
+
+  <style>
+    strong{
+      color: rgb(255, 64, 64);
+    }
+  </style>
+  <body>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <div class="flash-messages">
+      {% for msg in messages %}
+      <div class="flash">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Deletar Motorista</h2>
+
+    <form action="/deletar_motorista" method="POST">
+      <main class="forms-area">
+        <label class="forms-label" for="cpf">Insira o CPF do Motorista que quer <strong>DELETAR</strong></label>
+        <input class="forms-input" type="text" name="cpf" id="cpf" required />
+      </main>
+      <div class="buttons">
+        <button class="submit-button" type="submit">Deletar</button>
+      </div>
+    </form>
+  </body>
+</html>

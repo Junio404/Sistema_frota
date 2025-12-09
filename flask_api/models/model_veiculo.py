@@ -18,11 +18,6 @@ class Veiculo_create(BaseModel):
 # -------------------- VEICULO UPDATE --------------------
 
 class Veiculo_update(BaseModel):
-    placa: Optional[str] = None
-    modelo_fk: Optional[int] = None
-    tipo_veiculo: Optional[str] = None
-    ano: Optional[int] = None
-    quilometragem: Optional[float] = None
     consumo_medio_km_l: Optional[float] = None
     status: Optional[Veiculo_status] = None
 # -------------------- VEICULO RESPONSE --------------------

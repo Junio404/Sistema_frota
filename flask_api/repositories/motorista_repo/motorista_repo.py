@@ -177,3 +177,20 @@ def buscar_cat_cnh(cpf: str):
         )
         row = cur.fetchone()
         return row_to_motorista(row)
+    
+    
+
+def deletar_motorista(cpf: str):
+    
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.execute("PRAGMA foreign_key = ON")
+        cur = conn.cursor()
+        
+        cur.execute("""
+        DELETE FROM PESSOA WHERE CPF = ?         
+                    """, (cpf,))
+
+        
+        cur.execute("""
+        DELETE FROM MOTORISTA WHERE CPF = ?            
+                    """, (cpf,))
