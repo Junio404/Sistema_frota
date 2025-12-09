@@ -35,10 +35,12 @@
         <p class="principal_card_name">Ver Motoristas</p>
       </div>
     </a>
-      <div class="principal_card_report principal_card">
+      <a href="{{url_for('routes.update_motorista')}}" class="card_link">
+        <div class="principal_card_report principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/update.svg')}}" alt="" />
         <p class="principal_card_name">Atualizar Motorista</p>
       </div>
+      </a>
       <div class="principal_card_history principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/delete.svg')}}" alt="" />
         <p class="principal_card_name">Deletar Motorista</p>

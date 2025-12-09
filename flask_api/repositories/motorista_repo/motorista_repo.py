@@ -7,7 +7,7 @@ from flask_api.domain_classes.dc_pessoa import Pessoa
 # ---------------------------------------------------------
 # FUNÇÃO AUXILIAR — cria objeto Motorista a partir de linha do BD
 # ---------------------------------------------------------
-def _row_to_motorista(row):
+def row_to_motorista(row):
     if row is None:
         return None
     
@@ -107,7 +107,7 @@ def buscar_motorista_por_id(id_motorista: int) -> Motorista | None:
         )
 
         row = cur.fetchone()
-        return _row_to_motorista(row)
+        return row_to_motorista(row)
 
 
 # ---------------------------------------------------------
@@ -134,39 +134,46 @@ def listar_motoristas() -> list[Motorista]:
         )
 
         rows = cur.fetchall()
-        return [_row_to_motorista(r) for r in rows]
+        return [row_to_motorista(r) for r in rows]
 
 
 # ---------------------------------------------------------
 # ATUALIZAR MOTORISTA
 # ---------------------------------------------------------
-def atualizar_motorista(motorista: Motorista):
+def atualizar_motorista(id: int, dados: dict):
+    """
+    dados = {
+        "CAT_CNH": "C",
+        "EXP_ANOS": 10,
+        ...
+    }
+    Apenas os campos presentes no dict serão atualizados.
+    """
+
+    if not dados:
+        return  # nada pra atualizar
+
+    keys = ", ".join([f"{campo} = ?" for campo in dados.keys()])
+    values = list(dados.values())
+
+    query = f"UPDATE MOTORISTA SET {keys} WHERE ID = ?"
+
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         cur = conn.cursor()
-
-        # UPDATE PESSOA
-        cur.execute(
-            """UPDATE PESSOA
-               SET NOME = ?, CPF = ?
-               WHERE ID = ?
-            """,
-            (motorista.nome, motorista.cpf, motorista.id)
-        )
-
-        # UPDATE MOTORISTA
-        cur.execute(
-            """UPDATE MOTORISTA
-               SET CAT_CNH = ?, EXP_ANOS = ?, DISPONIBILIDADE = ?, CNH_VALIDO_ATE = ?
-               WHERE ID = ?
-            """,
-            (
-                motorista.cat_cnh,
-                motorista.exp_anos,
-                motorista.disponibilidade,
-                motorista.cnh_valido_ate,
-                motorista.id,
-            )
-        )
-
+        cur.execute(query, (*values, id))
         conn.commit()
+        
+
+def buscar_cat_cnh(cpf: str):
+    with sqlite3.connect(Config.DATABASE) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+        SELECT CAT_CNH 
+        FROM MOTORISTA
+        WHERE CPF = ?
+            """, (cpf,)
+        )
+        row = cur.fetchone()
+        return row_to_motorista(row)
