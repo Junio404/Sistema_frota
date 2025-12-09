@@ -3,6 +3,7 @@ from flask_api.models.model_motorista import Motorista_create
 from flask_api.models.model_veiculo import Veiculo_create
 from flask_api.models.model_viagem import *
 from flask_api.repositories.motorista_repo.motorista__repo import *
+from flask_api.repositories.manutencao_repo import *
 from flask_api.repositories.veiculo_repo.veiculo_repo import *
 from flask_api.models.enums import *
 import sqlite3
@@ -12,7 +13,7 @@ from flask_api.repositories.abastecimento_repo.abastecimento_repo import *
 from pydantic import ValidationError
 from flask_api.models.model_viagem import ViagemCreate
 from flask_api.models.model_abastecimento import Abastecimento_create
-from flask_api.domain_classes.dc_veiculo import Veiculo
+from flask_api.models.model_manutencao import Manutencao_create
 
 
 bp = Blueprint('routes', __name__)
@@ -54,9 +55,9 @@ def forms_motorista():
 def criar_motorista():
 
     try:
-        # ---------------------------
-        # 1) Pegar dados do formulário
-        # ---------------------------
+        
+        # ---------------- Pegar dados do formulário -----------------
+        
         raw_data = {
             "nome": request.form.get("nome"),
             "cpf": request.form.get("cpf"),
@@ -66,30 +67,28 @@ def criar_motorista():
             "cnh_valido_ate": request.form.get("cnh_valido_ate")
         }
 
-        # ---------------------------
-        # 2) Validar com Pydantic Model
-        # ---------------------------
+        # ----------Validar com Pydantic Model ------------------
+        
         pydantic_data = Motorista_create(**raw_data)
 
-        # ---------------------------
-        # 3) Validação adicional: CPF duplicado
-        # ---------------------------
+        # --------- Validação adicional: CPF duplicado -------------
+
         if cpf_existe(pydantic_data.cpf):
             flash("❌ Este CPF já está cadastrado.")
             return redirect("/motorista/create")
 
-        # ---------------------------
-        # 4) Converter data string → date
-        # Pydantic já aceita date, mas se vier string precisamos converter
-        # ---------------------------
+
+        # ---------- Converter data string → date (para evitar qualquer erro de tipagem) ---------
+
+
         if isinstance(pydantic_data.cnh_valido_ate, str):
             pydantic_data.cnh_valido_ate = datetime.strptime(
                 pydantic_data.cnh_valido_ate, "%Y-%m-%d"
             ).date()
 
-        # ---------------------------
-        # 5) Criar objeto de domínio (Motorista)
-        # ---------------------------
+        
+        # ------------- 5) Criar objeto de domínio (Motorista) ---------------
+
         motorista = Motorista(
             id=None,  # será gerado pelo BD
             nome=pydantic_data.nome,
@@ -99,17 +98,15 @@ def criar_motorista():
             disponibilidade=pydantic_data.disponibilidade.value,  # ENUM → string
             cnh_valido_ate=pydantic_data.cnh_valido_ate
         )
+        # ----------------- Persistir no Banco de Dados -----------------
 
-        # ---------------------------
-        # 6) Persistir no repositório
-        # ---------------------------
         inserir_motorista(motorista)
         flash("✅ Motorista cadastrado com sucesso!")
 
         return redirect(url_for("routes.index"))
 
     except ValueError as e:
-        # erros vindos do domínio (ex: CNH vencida)
+        # ----- erros vindos do domínio (ex: CNH vencida) ----------
         flash(f"❌ Erro de validação: {e}")
         return redirect("/motorista/create")
 
@@ -176,9 +173,9 @@ def criar_veiculo():
         'modelo_fk': id_modelo,
         'ano': int(request.form.get("ano")),
         'quilometragem': float(request.form.get("quilometragem")),
-        'status': request.form.get("disponibilidade", Veiculo_status.ATIVO.value), # Use .value para o Pydantic, se for um Enum
+        'status': request.form.get("disponibilidade", Veiculo_status.ATIVO.value),
         
-        # Dados obtidos do banco (substituem as 4 buscas individuais)
+        # ------- Dados obtidos do banco (substituem as 4 buscas individuais) --------
         **dados_modelo
     }
     
@@ -206,7 +203,7 @@ def criar_veiculo():
 @bp.route("/criar_viagem", methods=["POST"])
 def criar_viagem_route():
 
-    # 1. Dados do formulário
+    # ---------- Dados do formulário ----------------
     dados = request.form
     placa_fk = dados.get("placa_fk")
     cpf_fk = dados.get("cpf_fk")
@@ -215,7 +212,7 @@ def criar_viagem_route():
     distancia_str = dados.get("distancia_km")
     data_chegada = dados.get("data_chegada")
 
-    # 2. Validação básica
+    # ---------------- Validação básica ---------------
     try:
         if not placa_fk or not cpf_fk or not origem or not destino or not distancia_str or not data_chegada:
             raise ValueError("Todos os campos são obrigatórios.")
@@ -226,7 +223,7 @@ def criar_viagem_route():
         flash(f"❌ Erro: {str(e)}")
         return redirect(url_for("routes.forms_viagem"))
 
-    # 3. Buscar entidades
+    # -------------- Buscar entidades -------------
     veiculo = repo_get_veiculo(placa_fk)
     if not veiculo:
         flash("❌ Veículo não encontrado.")
@@ -237,7 +234,7 @@ def criar_viagem_route():
         flash("❌ Motorista não encontrado.")
         return redirect(url_for("routes.forms_viagem"))
 
-    # 4. Modelo Pydantic
+    # -------- Modelo Pydantic ------------
     try:
         viagem = ViagemCreate(
             placa_fk=placa_fk,
@@ -251,19 +248,22 @@ def criar_viagem_route():
         flash(f"❌ Erro nos dados da viagem: {str(e)}")
         return redirect(url_for("routes.forms_viagem"))
 
-    # 5. REGRAS DE NEGÓCIO — usando dados que seu repo oferece
+    # ------- REGRAS DE NEGÓCIO — usando dados que seu repo oferece --------------
 
-    # Status do motorista
+    # ----------------- Status do motorista ---------------------
     if motorista["DISPONIBILIDADE"] != Status_motorista.ATIVO.value:
         flash("❌ Motorista não está disponível.")
         return redirect(url_for("routes.forms_viagem"))
 
-    # Status do veículo
+    # -------------- Status do veículo ----------------
     if veiculo["STATUS"] != Veiculo_status.ATIVO.value:
         flash("❌ Veículo não está disponível.")
         return redirect(url_for("routes.forms_viagem"))
+    
+    if veiculo["STATUS"] == Veiculo_status.PREVENTIVA_URGENTE.value:
+        flash("❌ Veiculo precisa de uma revisão preventiva urgente! ")
 
-    # Hodômetro atual
+    # ------------- Hodômetro atual -------------
     hodometro_atual = repo_get_quilometragem(placa_fk)
     if hodometro_atual is None:
         flash("❌ Erro ao obter quilometragem do veículo.")
@@ -271,7 +271,7 @@ def criar_viagem_route():
 
     hodometro_final = hodometro_atual + distancia_km
 
-    # Consumo e combustível atual
+    #--------- Consumo e combustível atual -----------
     consumo_medio, litros_atual = repo_get_consumo(placa_fk)
     litros_necessarios = distancia_km / consumo_medio
 
@@ -281,7 +281,7 @@ def criar_viagem_route():
 
     novo_nivel_combustivel = litros_atual - litros_necessarios
 
-    # 6. Persistência — todas as operações dentro da mesma transação
+    #-----------Persistência — todas as operações dentro da mesma transação ------------- 
     try:
         with conectar() as conn:
             # Inserir viagem
@@ -337,24 +337,18 @@ def criar_abastecimento():
         litros = float(request.form.get("litros"))
         hodometro = get_quilometragem_atual_abastecimento(placa_fk)
 
-        # ---------------------------------------------
-        # 1 — VALIDAR SE A PLACA EXISTE
-        # ---------------------------------------------
+        #----------- Valida se Placa Existe ------------- 
         if not placa_existe(placa_fk):
             flash("❌ Placa não cadastrada.")
             return redirect(url_for("routes.forms_abastecimento"))
 
-        # ---------------------------------------------
-        # 2 — BUSCAR TIPO DE COMBUSTÍVEL DO VEÍCULO
-        # ---------------------------------------------
+        #----------- Valida o Tipo de Combustivel do Veiculo ------------- 
         tipo_combustivel = buscar_tipo_combustivel(placa_fk)
         if tipo_combustivel is None:
             flash("❌ Tipo de combustível do veículo não encontrado.")
             return redirect(url_for("routes.forms_abastecimento"))
 
-        # ---------------------------------------------
-        # 3 — VALIDAR QUANTIDADE DE LITROS
-        # ---------------------------------------------
+        #----------- Valida a Quantidade de Litros ------------- 
         qtd_litros_max = get_qtd_litros_abastecimento(placa_fk)
 
         try:
@@ -363,18 +357,14 @@ def criar_abastecimento():
             flash(f"❌ {str(e)}")
             return redirect(url_for("routes.forms_abastecimento"))
 
-        # ---------------------------------------------
-        # 4 — CALCULAR VALOR A PAGAR
-        # ---------------------------------------------
+        #----------- Calcula o valor a Pagar ------------- 
         try:
             valor_pago = valor_a_pagar(tipo_combustivel, litros)
         except ValueError as e:
             flash(f"❌ {str(e)}")
             return redirect(url_for("routes.forms_abastecimento"))
 
-        # ---------------------------------------------
-        # 5 — VALIDAR COM Pydantic ANTES DE CRIAR OBJETO
-        # ---------------------------------------------
+        #----------- Validação com o Model antes de criar o objeto ------------- 
         try:
             dados_validados = Abastecimento_create(
                 placa_fk=placa_fk,
@@ -388,9 +378,7 @@ def criar_abastecimento():
             flash(f"❌ Dados inválidos: {e.errors()}")
             return redirect(url_for("routes.forms_abastecimento"))
 
-        # ---------------------------------------------
-        # 6 — CRIAR OBJETO ABASTECIMENTO
-        # ---------------------------------------------
+        #----------- Cria objeto abastecimento com a classe de domínio ------------- 
         abastecimento = Abastecimento(
             id=None,
             placa_fk=dados_validados.placa_fk,
@@ -403,9 +391,7 @@ def criar_abastecimento():
             hodometro=dados_validados.hodometro
         )
 
-        # ---------------------------------------------
-        # 7 — INSERIR NO BANCO
-        # ---------------------------------------------
+        #----------- Insert no Banco ------------- 
         inserir_abastecimento(abastecimento)
         insert_evento_abastecimento(abastecimento)
         atualizar_litros_combustivel_abastecimento(litros, qtd_litros_max, placa_fk)
@@ -419,6 +405,106 @@ def criar_abastecimento():
         return redirect(url_for("routes.forms_abastecimento"))
     
     
+    
+@bp.route("/veiculo/manutencao")
+def forms_manutencao():
+    return render_template("forms_manutencao.html")
+    
+CUSTOS_PREVENTIVA = {
+    "MOTO": 150.00,
+    "CARRO": 350.00,
+    "CAMINHAO": 900.00
+}
+@bp.route("/criar_manutencao", methods=["POST"])
+def criar_manutencao_route():
+    try:
+        placa_fk = request.form.get("placa_fk", "").upper()
+        tipo_str = request.form.get("tipo_manutencao", "")
+        descricao = request.form.get("descricao")
+        custo = request.form.get("custo")
+        data_conclusao = request.form.get("data_conclusao")
+        
+        
+        print(tipo_str)
+
+        #----------- Valida se Placa Existe ------------- 
+        if not placa_existe(placa_fk):
+            flash("❌ Placa não cadastrada.")
+            return redirect(url_for("routes.forms_manutencao"))
+
+        veiculo = repo_get_veiculo(placa_fk)
+        #----------- Valida o Tipo de Manutenção -------------
+
+        try:
+            tipo_manutencao = Tipo_manutencao(tipo_str)
+        except ValueError:
+            flash("❌ Tipo de manutenção inválido.")
+            return redirect(url_for("routes.forms_manutencao"))
+        
+                
+        if veiculo["STATUS"] not in (
+            Veiculo_status.ATIVO.value,
+            Veiculo_status.INATIVO.value,
+            Veiculo_status.PREVENTIVA_URGENTE.value
+        ):
+            flash("❌ Veículo não pode fazer manutenção agora.")
+            return redirect(url_for("routes.forms_viagem"))
+
+
+        # ----------- CASO SEJA CORRETIVA → validar campos obrigatórios -----------
+
+        if tipo_manutencao == Tipo_manutencao.CORRETIVA:
+            if not custo or not descricao:
+                flash("❌ Para manutenção corretiva, custo e descrição são obrigatórios.")
+                return redirect(url_for("routes.forms_manutencao"))
+
+            try:
+                custo = float(custo)
+            except:
+                flash("❌ Custo inválido.")
+                return redirect(url_for("routes.forms_manutencao"))
+
+
+        # --------- VALIDAR DATA DE CONCLUSÃO (corretiva opcional) -----------
+
+        if data_conclusao:
+            try:
+                data_conclusao = date.fromisoformat(data_conclusao)
+            except:
+                flash("❌ Data de conclusão inválida.")
+                return redirect(url_for("routes.forms_manutencao"))
+
+
+        #----------- Validação com o MODELS -------------
+
+        try:
+            dados_validados = Manutencao_create(
+                placa_fk=placa_fk,
+                tipo_manutencao=tipo_manutencao,
+                data_conclusao=data_conclusao,
+                descricao=descricao,
+                custo=custo
+            )
+        except ValidationError as e:
+            flash(f"❌ Dados inválidos: {e.errors()}")
+            return redirect(url_for("routes.forms_manutencao"))
+
+
+        #----------- Inserção no DB (Verifica se é preventiva ou corretiva) -------------
+
+        print(dados_validados)
+        manutencao = inserir_manutencao(dados_validados)
+        atualizar_status_veiculo_manutencao(placa_fk)
+        historico = repo_insert_evento_manutencao(manutencao)
+        flash("🔧 Manutenção registrada com sucesso!")
+
+        
+        return redirect(url_for("routes.index"))
+
+    except Exception as e:
+        print("Erro ao cadastrar manutenção:", e)
+        flash("❌ Erro inesperado ao registrar manutenção.")
+        return redirect(url_for("routes.forms_manutencao"))
     
         
     
@@ -448,13 +534,12 @@ def criar_abastecimento():
 @bp.route("/api/marcas_modelos")
 def api_marcas_modelos():
     
-    # Usando uma busca centralizada para todos os modelos com JOIN
+    # ---------- Abre conexão com SQLite e habilita Row para acessar colunas por nome ----------
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        # 1. Pega todas as marcas e seus modelos em UMA ÚNICA consulta JOIN
-        # Isso é mais eficiente do que o loop original que fazia N consultas.
+        # ---------- Consulta JOIN única para trazer marcas + modelos + categoria mínima de CNH ----------
         cur.execute("""
             SELECT 
                 M.ID AS marca_id, 
@@ -462,10 +547,10 @@ def api_marcas_modelos():
                 MO.ID AS modelo_id,
                 MO.NOME_MODELO,
                 MO.TIPO_VEICULO,
-                TVC.CAT_MIN_CNH,                 -- BUSCADO DO JOIN
+                TVC.CAT_MIN_CNH,
                 MO.QTD_LITROS,
                 MO.CONSUMO_MEDIO_KM_L,
-                MO.TIPO_COMBUSTIVEL              -- Adicionado para completar o modelo
+                MO.TIPO_COMBUSTIVEL
             FROM MARCA M
             LEFT JOIN MODELO MO ON M.ID = MO.MARCA_FK
             LEFT JOIN TIPO_VEICULO_CNH TVC ON MO.TIPO_VEICULO = TVC.TIPO_VEICULO
@@ -474,20 +559,20 @@ def api_marcas_modelos():
         
         todos_modelos = cur.fetchall()
         
-    # 2. Processamento dos dados para estruturar o JSON
+    # ---------- Estrutura que agrupa modelos dentro das marcas ----------
     resultado_agrupado = {}
 
     for row in todos_modelos:
         marca_nome = row['marca_nome']
         
-        # Inicializa a lista de modelos para a marca se ainda não existir
+        # ---------- Cria entrada da marca caso ainda não exista ----------
         if marca_nome not in resultado_agrupado:
             resultado_agrupado[marca_nome] = {
                 "marca": marca_nome,
                 "modelos": []
             }
         
-        # Adiciona os detalhes do modelo (se houver)
+        # ---------- Se existe um modelo, adiciona ele dentro da marca ----------
         if row['modelo_id'] is not None:
             modelo_data = {
                 "id": row['modelo_id'],
@@ -500,21 +585,22 @@ def api_marcas_modelos():
             }
             resultado_agrupado[marca_nome]['modelos'].append(modelo_data)
 
-    # Converte o dicionário de agrupamento em uma lista de valores para o formato final
+    # ---------- Converte o dict em lista obrigatória no padrão JSON ----------
     resultado_final = list(resultado_agrupado.values())
 
-    # 3. Retorna o resultado usando jsonify do Flask
+    # ---------- Retorna JSON final ----------
     return jsonify(resultado_final)
-
 
 
 @bp.route("/api/veiculos")
 def api_veiculos():
 
+    # ---------- Conexão com banco e ativação do acesso por nome ----------
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
+        # ---------- Busca completa de veículos, modelos e marcas ----------
         cur.execute("""
             SELECT 
                 V.PLACA,
@@ -544,6 +630,7 @@ def api_veiculos():
 
         rows = cur.fetchall()
 
+    # ---------- Monta lista final para JSON ----------
     veiculos = []
 
     for r in rows:
@@ -557,6 +644,7 @@ def api_veiculos():
             "tipo_combustivel": r["TIPO_COMBUSTIVEL"],
             "status": r["STATUS"],
 
+            # ---------- Dados do modelo ----------
             "modelo": {
                 "id": r["modelo_id"],
                 "nome_modelo": r["NOME_MODELO"],
@@ -566,12 +654,14 @@ def api_veiculos():
                 "consumo_medio_km_l": r["modelo_consumo"]
             },
 
+            # ---------- Dados da marca ----------
             "marca": {
                 "id": r["marca_id"],
                 "nome": r["marca_nome"]
             }
         })
 
+    # ---------- Retorna JSON ----------
     return jsonify(veiculos)
 
 
@@ -579,10 +669,12 @@ def api_veiculos():
 @bp.route("/api/motoristas")
 def api_motoristas():
 
+    # ---------- Conexão com banco e leitura por nome ----------
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
+        # ---------- Consulta Motorista + Pessoa ----------
         cur.execute("""
             SELECT 
                 MT.CPF,
@@ -600,6 +692,7 @@ def api_motoristas():
 
         rows = cur.fetchall()
 
+    # ---------- Monta JSON final ----------
     motoristas = []
 
     for r in rows:
@@ -612,6 +705,6 @@ def api_motoristas():
             "cnh_valido_ate": r["CNH_VALIDO_ATE"]
         })
 
+    # ---------- Retorno JSON ----------
     return jsonify(motoristas)
-
 

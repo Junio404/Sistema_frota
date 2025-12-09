@@ -11,12 +11,12 @@ class Pessoa:
         self.nome = nome
         self.cpf = cpf
 
-    # ID
+    # ------------------- ID -------------------
     @property
     def id(self):
         return self._id
 
-    # NOME
+    # ------------------- NOME -------------------
     @property
     def nome(self):
         return self._nome
@@ -32,7 +32,7 @@ class Pessoa:
 
         self._nome = value.strip()
 
-    # CPF
+    # ------------------- CPF -------------------
     @property
     def cpf(self):
         return self._cpf

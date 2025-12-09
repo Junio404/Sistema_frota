@@ -26,7 +26,7 @@ class Motorista(Pessoa):
         self.disponibilidade = disponibilidade
         self.cnh_valido_ate = cnh_valido_ate
 
-    # CAT CNH
+    # ---------------- CAT CNH -------------------
     @property
     def cat_cnh(self):
         return self._cat_cnh
@@ -37,7 +37,7 @@ class Motorista(Pessoa):
             raise ValueError("Categoria de CNH inválida.")
         self._cat_cnh = value
 
-    # EXP ANOS
+    # ------------------- EXP ANOS -------------------
     @property
     def exp_anos(self):
         return self._exp_anos
@@ -48,7 +48,7 @@ class Motorista(Pessoa):
             raise ValueError("Experiência inválida.")
         self._exp_anos = value
 
-    # DISPONIBILIDADE
+    # ------------------- DISPONIBILIDADE -------------------
     @property
     def disponibilidade(self):
         return self._disponibilidade
@@ -63,7 +63,7 @@ class Motorista(Pessoa):
 
         self._disponibilidade = value
 
-    # CNH VALIDO ATÉ
+    # ------------------- CNH VALIDO ATÉ -------------------
     @property
     def cnh_valido_ate(self):
         return self._cnh_valido_ate

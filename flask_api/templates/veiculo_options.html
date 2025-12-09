@@ -52,14 +52,16 @@
         <p class="principal_card_name">Deletar Veículo</p>
       </div>
 
-      <div class="principal_card_maintence principal_card">
-        <img
-          class="principal_card_img"
-          src="{{url_for('static',filename='img/maintence.svg')}}"
-          alt=""
-        />
-        <p class="principal_card_name">Manutenção</p>
-      </div>
+      <a href="{{url_for('routes.forms_manutencao')}}" class="card_link">
+        <div class="principal_card_maintence principal_card">
+          <img
+            class="principal_card_img"
+            src="{{url_for('static',filename='img/maintence.svg')}}"
+            alt=""
+          />
+          <p class="principal_card_name">Manutenção</p>
+        </div>
+      </a>
 
       <a href="{{url_for('routes.forms_abastecimento')}}" class="card_link">
         <div class="principal_card_report principal_card">

@@ -11,9 +11,9 @@ class Viagem:
         self.distancia_km = distancia_km
         self.data_chegada = data_chegada
 
-    # ==========================================================
-    # Validações de domínio (sem banco!)
-    # ==========================================================
+
+    # ------------- Validações de domínio -------------
+
 
     @staticmethod
     def validar_motorista_disponivel(status_motorista: str):
@@ -62,4 +62,5 @@ class Viagem:
         if qtd_litros_atual - litros_gastos < 0:
             raise ValueError("Viagem Longa para a quantidade de litros de combustivel que o carro tem!")
         return qtd_litros_atual - litros_gastos
+    
 

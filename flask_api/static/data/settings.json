@@ -24,37 +24,6 @@
     "CAMINHAO": "C"
   },
 
-  "custos_manutencao": {
-    "preventiva": {
-      "MOTO": 150.00,
-      "CARRO": 350.00,
-      "CAMINHAO": 900.00
-    },
-    "corretiva": {
-      "MOTO": {
-        "troca_pneu": 180.00,
-        "troca_oleo": 40.00,
-        "pastilha_freio": 120.00,
-        "vela_ignicao": 35.00,
-        "embalagem_motor": 900.00
-      },
-      "CARRO": {
-        "troca_pneu": 450.00,
-        "troca_oleo": 90.00,
-        "pastilha_freio": 280.00,
-        "correia_dentada": 600.00,
-        "embreagem": 1200.00
-      },
-      "CAMINHAO": {
-        "troca_pneu": 1800.00,
-        "troca_oleo": 450.00,
-        "pastilha_freio": 900.00,
-        "sistema_injecao": 3500.00,
-        "embreagem": 5000.00
-      }
-    }
-  },
-
   "valor_litro_combustivel": {
     "GASOLINA": 5.89,
     "ETANOL": 4.29,

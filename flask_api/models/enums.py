@@ -5,8 +5,9 @@ from enum import Enum
 class Veiculo_status(str, Enum):
     ATIVO = "ATIVO"
     INATIVO = "INATIVO"
-    MANUTENCAO = "MANUTENÇÃO"
+    MANUTENCAO = "MANUTENCAO"
     EM_VIAGEM = "EM_VIAGEM"
+    PREVENTIVA_URGENTE = "PREVENTIVA_URGENTE"
         
 # -------------------- ENUMS MOTORISTA --------------------
 
@@ -58,3 +59,11 @@ class Tipo_evento(str, Enum):
     VIAGEM = "VIAGEM"
     ABASTECIMENTO = "ABASTECIMENTO"
     MANUTENCAO = "MANUTENÇÃO"
+
+
+class Status_manutencao(str, Enum):
+    PENDENTE = "PENDENTE"
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDA = "CONCLUIDA"
+    CANCELADA = "CANCELADA"
+ 

@@ -5,9 +5,9 @@ from flask_api.domain_classes.dc_abastecimento import Abastecimento
 from flask_api.models.enums import Tipo_evento
 
 
-# ---------------------------------------------------------
-# FUNÇÃO AUXILIAR — cria objeto Abastecimento a partir da linha do BD
-# ---------------------------------------------------------
+
+# ------------- FUNÇÃO AUXILIAR — cria objeto Abastecimento a partir da linha do BD -------------
+
 def _row_to_abastecimento(row):
     if row is None:
         return None
@@ -33,9 +33,9 @@ def _row_to_abastecimento(row):
     )
 
 
-# ---------------------------------------------------------
-# BUSCAR TIPO DE COMBUSTÍVEL PELO VEÍCULO
-# ---------------------------------------------------------
+
+# ------------- BUSCAR TIPO DE COMBUSTÍVEL PELO VEÍCULO -------------
+
 def buscar_tipo_combustivel(placa: str) -> str | None:
     with sqlite3.connect(Config.DATABASE) as conn:
         cur = conn.cursor()
@@ -52,9 +52,9 @@ def buscar_tipo_combustivel(placa: str) -> str | None:
         return row[0] if row else None
 
 
-# ---------------------------------------------------------
-# PEGAR QUANTIDADE DE LITROS CADASTRADA DO VEÍCULO
-# ---------------------------------------------------------
+
+# ------------- PEGAR QUANTIDADE DE LITROS CADASTRADA DO VEÍCULO -------------
+
 def get_qtd_litros_abastecimento(placa: str) -> float | None:
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -73,9 +73,9 @@ def get_qtd_litros_abastecimento(placa: str) -> float | None:
         return float(row["QTD_LITROS"]) if row else None
 
 
-# ---------------------------------------------------------
-# FUNÇÃO DE NEGÓCIO: cálculo do valor a pagar
-# ---------------------------------------------------------
+
+# ------------- FUNÇÃO DE NEGÓCIO: cálculo do valor a pagar -------------
+
 def valor_a_pagar(tipo_combustivel: str, litros: int) -> float:
 
     precos = {
@@ -143,9 +143,9 @@ def atualizar_litros_combustivel_abastecimento(litros: float, qtd_atual: float, 
     
 
 
-# ---------------------------------------------------------
-# INSERIR ABASTECIMENTO
-# ---------------------------------------------------------
+
+# ------------- INSERIR ABASTECIMENTO -------------
+
 def inserir_abastecimento(abastecimento: Abastecimento):
     with sqlite3.connect(Config.DATABASE) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
@@ -176,9 +176,9 @@ def inserir_abastecimento(abastecimento: Abastecimento):
         conn.commit()
 
 
-# ---------------------------------------------------------
+
 # BUSCAR ABASTECIMENTO POR ID
-# ---------------------------------------------------------
+
 def buscar_abastecimento_por_id(id_abastecimento: int) -> Abastecimento | None:
     with sqlite3.connect(Config.DATABASE) as conn:
         cur = conn.cursor()
@@ -203,9 +203,9 @@ def buscar_abastecimento_por_id(id_abastecimento: int) -> Abastecimento | None:
         return _row_to_abastecimento(row)
 
 
-# ---------------------------------------------------------
-# LISTAR TODOS OS ABASTECIMENTOS
-# ---------------------------------------------------------
+
+# ------------- LISTAR TODOS OS ABASTECIMENTOS -------------
+
 def listar_abastecimentos() -> list[Abastecimento]:
     with sqlite3.connect(Config.DATABASE) as conn:
         cur = conn.cursor()

@@ -33,6 +33,7 @@ body {
   background-color: #1b263b;
 }
 
+
 /* ---------------- TITULOS ---------------- */
 .titulo_principal {
   text-align: center;
@@ -125,6 +126,13 @@ select:hover {
   transition: 0.2s ease-in-out;
 }
 
+
+.forms-input:disabled,
+.select-input:disabled {
+  background-color: #cacaca;
+  color: #666;               
+  cursor: not-allowed;      
+}
 /* ---------------- BOTÃO ---------------- */
 
 .buttons {
@@ -132,6 +140,8 @@ select:hover {
     justify-content: flex-center;
     margin-top: 2.5rem;
 }
+
+
 
 .buttons-abtc {
   display: flex;

@@ -57,19 +57,18 @@
     </table>
 
     <script>
-      // Referências aos elementos do HTML
+
       const tabela = document.getElementById("tabela-modelos");
-      // CORREÇÃO: Usando a chave 'modelo_id' para o ID, mais claro
       const id_input = document.getElementById("nome_modelo");
-      // CORREÇÃO: Usando a chave 'nome_modelo' para o Nome do Modelo
+
       const modelo_input = document.getElementById("tipo_veiculo");
       const button = document.querySelector(".submit-button");
-      const clear_button = document.querySelector(".clean-button"); // Garante que o clear_button está aqui
+      const clear_button = document.querySelector(".clean-button");
 
       // URL da API
       const API_URL = "/api/marcas_modelos";
 
-      // 1. Função de carregamento inicial (preenche a tabela com TODOS os modelos)
+
       async function carregarModelos() {
         tabela.innerHTML = `<tr><td colspan="8">Carregando modelos...</td></tr>`;
 
@@ -88,7 +87,7 @@
             marca.modelos.forEach((modelo) => {
               const linha = document.createElement("tr");
 
-              // ⭐️ PADRONIZAÇÃO DE CHAVES (de maiúsculas para snake_case) ⭐️
+              // PADRONIZAÇÃO DE CHAVES (de maiúsculas para snake_case)
               linha.innerHTML = `
                         <td>${modelo.id}</td>
                         <td>${modelo.nome_modelo}</td>
@@ -110,7 +109,7 @@
         }
       }
 
-      // 2. Função principal de busca e filtragem no lado do cliente
+      //Função principal de busca e filtragem no lado do cliente
       async function filtrar_dados(event) {
         if (event) event.preventDefault();
 
@@ -119,7 +118,7 @@
         const id_busca = id_input.value.trim();
         const modelo_busca = modelo_input.value.trim().toLowerCase();
 
-        // 3. Buscar TODOS os dados do servidor
+        //Buscar TODOS os dados do servidor
         try {
           const response = await fetch(API_URL);
           if (!response.ok) {
@@ -128,7 +127,7 @@
           }
           const dados = await response.json();
 
-          // 4. Filtrar os dados e montar a lista de resultados
+          // Filtrar os dados e montar a lista de resultados
           const resultados_filtrados = [];
 
           dados.forEach((marca) => {
@@ -161,7 +160,7 @@
           resultados_filtrados.forEach((modelo_filtrado) => {
             const linha = document.createElement("tr");
 
-            // ⭐️ PADRONIZAÇÃO DE CHAVES (de maiúsculas para snake_case) ⭐️
+            // PADRONIZAÇÃO DE CHAVES 
             linha.innerHTML = `
                     <td>${modelo_filtrado.id}</td>
                     <td>${modelo_filtrado.nome_modelo}</td>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>forms</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/forms.css')}}"
+    />
+  </head>
+  <body>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for msg in messages %}
+          <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Cadastro Veiculo</h2>
+
+    <form action="/criar_manutencao" method="POST" >
+      <main class="forms-area">
+        <label class="forms-label" for="placa">Placa (PADRÃO MERCOSUL)</label>
+        <input class="forms-input" type="text" name="placa_fk" id="placa_fk" required/>
+        <label class="forms-label" for="tipo_manutencao">Tipo de Manutencao</label>
+        <select name="tipo_manutencao" id="tipo_manutencao" class="select-input" required>
+          <option value="0">Selecione</option>
+          <option value="PREVENTIVA">PREVENTIVA</option>
+          <option value="CORRETIVA">CORRETIVA</option>
+        </select>
+        <label class="forms-label" for="Data de Conclusão">Data de Conclusão</label>
+        <input class="forms-input" type="date" name="data_conclusao" id="data_conclusao" required/>
+        <label class="forms-label" for="Descrição">Descrição</label>
+        <input class="forms-input" type="text" name="descricao" id="descricao" required/>
+        <label class="forms-label" for="Custo">Custo</label>
+        <input class="forms-input" type="number" step="0.01" name="custo" id="custo" required/>
+      </main>
+      <div class="buttons">
+        <button class="submit-button" type="submit">Enviar</button>
+
+      </div>
+    </form>
+
+
+    <script>
+      const tipoManutencao = document.getElementById("tipo_manutencao");
+      const descricao = document.getElementById("descricao");
+      const custo = document.getElementById("custo");
+
+      function atualizarCampos() {
+        if (tipoManutencao.value === "PREVENTIVA") {
+          descricao.disabled = true;
+          custo.disabled = true;
+
+          descricao.value = "";
+          custo.value = "";
+        } else {
+          descricao.disabled = false;
+          custo.disabled = false;
+        }
+      }
+
+      tipoManutencao.addEventListener("change", atualizarCampos);
+      atualizarCampos();
+    </script>
+  </body>
+
+</html>
