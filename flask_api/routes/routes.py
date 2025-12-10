@@ -510,15 +510,6 @@ def criar_manutencao_route():
     
         
     
-        
-
-# @bp.errorhandler(Exception)
-# def handle_exception(e):
-#     return render_template("erro.html", erro=str(e)), 500
-
-
-
-
 # -------------------- UPDATE ROUTES --------------------------------
 
 @bp.route("/motorista/update")
@@ -909,3 +900,10 @@ def api_motoristas():
     # ---------- Retorno JSON ----------
     return jsonify(motoristas)
 
+
+
+# ------------------------ ERROR ROUTE ---------------------------
+@bp.errorhandler(Exception)
+def handle_exception(e):
+    # Não deixa a api quebrar, em vez disso, renderiza uma tela de erro e permite o usuário voltar à tela principal.
+    return render_template("erro.html", erro=str(e)), 500

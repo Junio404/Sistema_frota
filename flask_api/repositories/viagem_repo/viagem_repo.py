@@ -145,3 +145,77 @@ def repo_insert_evento_viagem(conn, viagem):
         viagem.distancia_km,
         f"Motorista: {viagem.cpf_fk}"
     ))
+
+
+
+def verificar_conclusao_viagem():
+    """
+    Verifica viagens cujo término já chegou,
+    marcando como concluídas e reativando veículo e motorista.
+    """
+
+    data_hoje_iso = date.today().isoformat()
+
+    conn = None
+    try:
+        conn = sqlite3.connect(Config.DATABASE)
+        conn.execute("PRAGMA foreign_keys = ON")
+        cur = conn.cursor()
+
+        
+        # ----------------- 1 — Buscar viagens que deveriam ser concluídas --------------
+        
+        cur.execute("""
+            SELECT ID, PLACA_FK, CPF_FK
+            FROM VIAGEM
+            WHERE STATUS = ?
+              AND DATA_CHEGADA <= ?
+        """, (Status_viagem.EM_ANDAMENTO.value, data_hoje_iso))
+
+        viagens_a_concluir = cur.fetchall()
+        
+
+        if not viagens_a_concluir:
+            print("Nenhuma viagem pendente de conclusão encontrada.")
+            return
+
+        
+        # ------- 2 — Atualizar cada viagem, motorista e veículo -----------
+        
+        for id_viagem, placa, cpf in viagens_a_concluir:
+
+            # VIAGEM -> CONCLUÍDA
+            cur.execute("""
+                UPDATE VIAGEM
+                SET STATUS = ?
+                WHERE ID = ?
+            """, (Status_viagem.CONCLUIDA.value, id_viagem))
+
+            # VEÍCULO -> ATIVO
+            cur.execute("""
+                UPDATE VEICULO
+                SET STATUS = ?
+                WHERE PLACA = ?
+            """, (Veiculo_status.ATIVO.value, placa))
+
+            # MOTORISTA -> ATIVO
+            cur.execute("""
+                UPDATE MOTORISTA
+                SET DISPONIBILIDADE = ?
+                WHERE CPF = ?
+            """, (Status_motorista.ATIVO.value, cpf))
+
+            print(f"✅ Viagem {id_viagem} concluída. Veículo {placa} e motorista {cpf} ativados.")
+
+        conn.commit()
+        print("✅ Todas as viagens concluídas com sucesso.")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Erro ao verificar conclusão de viagem: {e}")
+        raise
+
+    finally:
+        if conn:
+            conn.close()

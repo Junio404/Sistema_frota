@@ -1,7 +1,6 @@
 import sqlite3
 from datetime import date
 from config import Config
-
 from flask_api.domain_classes.dc_manutencao import Manutencao
 from flask_api.models.enums import Tipo_manutencao, Status_manutencao, Veiculo_status, Tipo_evento
 

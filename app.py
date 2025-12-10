@@ -4,7 +4,7 @@ from flask_api import create_app
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit 
 
-
+from flask_api.repositories.viagem_repo.viagem_repo import verificar_conclusao_viagem
 from flask_api.repositories.manutencao_repo import verificar_conclusao_manutencao 
 
 
@@ -34,6 +34,13 @@ if __name__ == "__main__":
     trigger='interval', 
     seconds=600
 
+)
+    scheduler.add_job(
+    func=verificar_conclusao_viagem,
+    trigger='interval',
+    seconds=600,  # a cada 10 minutos
+    id='viagens_verificacao_job',
+    replace_existing=True
 )
 
     #Inicia o agendador em uma thread separada
