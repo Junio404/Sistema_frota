@@ -21,7 +21,7 @@
     <h2 class="subtitulo_principal">Menu Relatórios</h2>
 
     <main class="principal-report">
-      <a href="{{url_for('routes.motorista_options')}}" class="card_link">
+      <a href="{{url_for('routes_report.relatorio_eficiencia')}}" class="card_link">
         <div class="principal_card_person principal_card">
           <img
             class="principal_card_img"
@@ -31,7 +31,7 @@
           <p class="principal_card_name">Ranking Eficiencia</p>
         </div>
       </a>
-      <a href="{{url_for('routes.veiculo_options')}} " class="card_link">
+      <a href="{{url_for('routes_report.relatorio_total_viagens')}} " class="card_link">
         <div class="principal_card_veicle principal_card card-total-viagens">
           <img
             class="principal_card_img"
@@ -41,6 +41,8 @@
           <p class="principal_card_name">Total de Viagens</p>
         </div>
       </a>
+
+            <a href="{{url_for('routes_report.relatorio_quilometragem')}} " class="card_link">
       <div class="principal_card_report1 principal_card principal-card-">
         <img
           class="principal_card_img"
@@ -49,15 +51,19 @@
         />
         <p class="principal_card_name km_veiculo">Quilometragem por Veículo</p>
       </div>
+      </a>
 
-            <div class="principal_card_report2 principal_card principal-card">
+
+      <a href="{{url_for("routes_report.relatorio_manutencao")}}" class="card_link">
+                <div class="principal_card_report2 principal_card principal-card">
         <img
           class="principal_card_img"
           src="{{url_for('static',filename='img/report.svg')}}"
           alt=""
         />
-        <p class="principal_card_name km_veiculo">Status Carros</p>
-
+        <p class="principal_card_name km_veiculo">Relatório Manutenções</p>
+      </div>
+      </a>
     </main>
   </body>
 </html>

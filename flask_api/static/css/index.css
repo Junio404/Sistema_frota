@@ -63,7 +63,7 @@ body{
     grid-template-areas: 
     "person veicles fuel"
     "maintenance report update"
-    "abacaxi history None";
+    ". history .";
 
     height: 68vh;
     padding: 2rem 5rem 2rem 7rem;
@@ -127,8 +127,10 @@ body{
     color: var(--cor-do-texto);
     border-radius: 12px;
 
-    height: 25rem;  /* ok */
-    width: 62.5rem;    /* ocupa toda a célula da grid */
+    max-height: 25rem;  /* ok */
+    min-width: 62.5rem;    /* ocupa toda a célula da grid */
+    max-height: 27rem;
+    max-width: 64.5rem;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
     letter-spacing: .25rem;
 
@@ -176,6 +178,9 @@ body{
     margin: 0.5rem;
     padding: 1rem;
     border-radius: 10px;
+    height: 27em;  /* ok */
+    width: 64.5rem;    /* ocupa toda a célula da grid */
+    margin-top: 1rem;
 }
 
 .principal_card_maintence{
@@ -208,8 +213,9 @@ body{
 
 .principal_card_history{
     grid-area: history;
-    height: 23.5rem;  /* ok */
-    width: 62.5rem;    /* ocupa toda a célula da grid */
+    height: 27em;  /* ok */
+    width: 64.5rem;    /* ocupa toda a célula da grid */
+    margin-top: 1rem;
     margin: 0.5rem;
     padding: 0.7rem;
 
@@ -219,9 +225,9 @@ body{
 .principal_card_update{
     grid-area: update;
 
-    height: 25em;  /* ok */
-    width: 62.5rem;    /* ocupa toda a célula da grid */
-    place-self: center;
+    height: 27em;  /* ok */
+    width: 64.5rem;    /* ocupa toda a célula da grid */
+    margin-top: 1rem;
 }
 
 

@@ -3,11 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Sistema de Gerenciamento de Frota</title>
     <link
       rel="stylesheet"
       href="{{url_for('static', filename='css/index.css')}}"
     />
+    <link rel="shortcut icon" href="{{url_for('static', filename='img/truck.svg')}}" type="image/x-icon">
   </head>
   <body> 
   {% with messages = get_flashed_messages() %}
@@ -23,25 +24,25 @@
     <h2 class="subtitulo_principal">Menu Principal</h2>
 
     <main class="principal-index">
-      <a href="{{url_for('routes.motorista_options')}}" class="card_link">
+      <a href="{{url_for('routes_index.motorista_options')}}" class="card_link">
       <div class="principal_card_person principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/person.svg')}}" alt="" />
         <p class="principal_card_name">Motorista</p>
       </div>
       </a>
-      <a href="{{url_for('routes.veiculo_options')}} " class="card_link">
+      <a href="{{url_for('routes_index.veiculo_options')}} " class="card_link">
         <div class="principal_card_veicle principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/truck.svg')}}" alt="" />
         <p class="principal_card_name">Veiculos</p>
       </div>
     </a>
-      <a href="{{url_for('routes.relatorio_options')}} " class="card_link">
+      <a href="{{url_for('routes_index.relatorio_options')}} " class="card_link">
       <div class="principal_card_report principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/report.svg')}}" alt="" />
         <p class="principal_card_name">Relatórios</p>
       </div>
       </a>
-      <a href="{{url_for('routes.forms_viagem')}}" class="card_link">
+      <a href="{{url_for('routes_create.forms_viagem')}}" class="card_link">
               <div class="principal_card_history principal_card">
         <img class="principal_card_img" src="{{url_for('static',filename='img/travel.svg')}}" alt="" />
         <p class="principal_card_name">Viagem</p>

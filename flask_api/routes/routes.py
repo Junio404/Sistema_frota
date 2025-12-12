@@ -30,23 +30,25 @@ def index():
 #------------------------------- OPTIONS HTML -------------------------------------
 @bp.route("/veiculo")
 def veiculo_options():
-    return render_template("veiculo_options.html")
+    return render_template("options/veiculo_options.html")
 
 @bp.route("/motorista")
 def motorista_options():
-    return render_template("motorista_options.html")
+    return render_template("options/motorista_options.html")
 
 @bp.route("/relatórios")
 def relatorio_options():
-    return render_template("relatorio_options.html")
+    return render_template("options/relatorio_options.html")
+
+
 
 @bp.route("/viagem")
 def forms_viagem():
-    return render_template("forms_viagem.html")
+    return render_template("forms/forms_viagem.html")
 
 @bp.route("/motorista/create")
 def forms_motorista():
-    return render_template("forms.html")
+    return render_template("forms/forms.html")
 
 
 
@@ -119,20 +121,40 @@ def criar_motorista():
 
 @bp.route("/modelo/read")
 def tabela_modelo():
-    return render_template("ver_modelos.html")
+    return render_template("read/ver_modelos.html")
 
 @bp.route("/motorista/read")
 def tabela_motorista():
-    return render_template("ver_motorista.html")
+    return render_template("read/ver_motorista.html")
 
 @bp.route("/veiculo/read")
 def tabela_veiculo():
-    return render_template("ver_veiculo.html")
+    return render_template("read/ver_veiculo.html")
 
+@bp.route("/historico_veiculo/read")
+def tabela_historico():
+    return render_template("read/ver_historico_veiculo.html")
+
+
+@bp.route("/relatorio/ranking_eficiencia")
+def relatorio_eficiencia():
+    return render_template("relatorio/relatorio_eficiencia.html")
+
+@bp.route("/relatorio/quilometragem_media")
+def relatorio_quilometragem():
+    return render_template("relatorio/relatorio_km.html")
+
+@bp.route("/relatorio/total_viagens")
+def relatorio_total_viagens():
+    return render_template("relatorio/relatorio_total_viagens.html")
+
+@bp.route("/relatorio/custo_manutenções")
+def relatorio_manutencao():
+    return render_template("relatorio/relatorio_manutencao.html")
 #---------------------------- CRIAR VEICULO ----------------------------
 @bp.route("/veiculo/create")
 def forms_veiculo():
-    return render_template("forms_veiculo.html")
+    return render_template("forms/forms_veiculo.html")
 
 
 @bp.route("/criar_veiculo", methods=["POST"])
@@ -329,7 +351,7 @@ def criar_viagem_route():
     
 @bp.route("/veiculo/abastecimento")
 def forms_abastecimento():
-    return render_template("forms_abastecimento.html")
+    return render_template("forms/forms_abastecimento.html")
     
 
 @bp.route("/criar_abastecimento", methods=["POST"])
@@ -410,7 +432,7 @@ def criar_abastecimento():
     
 @bp.route("/veiculo/manutencao")
 def forms_manutencao():
-    return render_template("forms_manutencao.html")
+    return render_template("forms/forms_manutencao.html")
     
 CUSTOS_PREVENTIVA = {
     "MOTO": 150.00,
@@ -514,7 +536,7 @@ def criar_manutencao_route():
 
 @bp.route("/motorista/update")
 def update_motorista():
-    return render_template("atualizar_motorista.html")
+    return render_template("atualizar/atualizar_motorista.html")
 
 @bp.route("/atualizar_motorista", methods=["POST"])
 def atualizar_motorista_route():
@@ -605,7 +627,7 @@ def atualizar_motorista_route():
 
 @bp.route("/veiculo/update")
 def update_veiculo():
-    return render_template("atualizar_veiculo.html")
+    return render_template("atualizar/atualizar_veiculo.html")
 
 @bp.route("/atualizar_veiculo", methods=["POST"])
 def atualizar_veiculo_route():
@@ -666,7 +688,7 @@ def atualizar_veiculo_route():
 
 @bp.route("/motorista/deletar")
 def delete_motorista():
-    return render_template("deletar_motorista.html")
+    return render_template("delete\deletar_motorista.html")
 
 
 @bp.route("/deletar_motorista", methods=["POST"])
@@ -695,7 +717,7 @@ def deletar_motorista_route():
     
 @bp.route("/veiculo/deletar")  
 def delete_veiculo():
-    return render_template("deletar_veiculo.html")
+    return render_template("delete/deletar_veiculo.html")
 
 @bp.route("/deletar_veiculo", methods=["POST"])
 def deletar_veiculo_route():
@@ -721,7 +743,7 @@ def deletar_veiculo_route():
     
 
     
-# ------------------------ API / JSON DO BANCO ------------------------------------
+# ----------------------------- API / JSON DO BANCO ------------------------------------
 
 @bp.route("/api/marcas_modelos")
 def api_marcas_modelos():
@@ -899,6 +921,134 @@ def api_motoristas():
 
     # ---------- Retorno JSON ----------
     return jsonify(motoristas)
+
+
+
+@bp.route("/api/historico_veiculo")
+def api_historico_veiculo():
+    
+    
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("""
+        SELECT 
+        HV.ID,
+        HV.PLACA_FK,
+        HV.TIPO_EVENTO,
+        HV.DATA_EVENTO,
+        HV.RESUMO,
+        HV.VALOR_ASSOCIADO,
+        HV.OBSERVACAO
+        
+        FROM HISTORICO_EVENTO_VEICULO HV
+        ORDER BY HV.ID
+        
+                    """)
+        
+        rows = cur.fetchall()
+        
+    historico_veiculo = []
+    
+    for r in rows:
+        historico_veiculo.append({
+            "id": r["ID"],
+            "placa_fk": r["PLACA_FK"],
+            "tipo_evento": r["TIPO_EVENTO"],
+            "data_evento": r["DATA_EVENTO"],
+            "resumo": r["RESUMO"],
+            "valor_associado": r["VALOR_ASSOCIADO"],
+            "observacao": r["OBSERVACAO"]
+            
+        })
+        
+    return jsonify(historico_veiculo)
+
+
+@bp.route("/api/viagens")
+def api_viagens():
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                V.ID,
+                V.PLACA_FK,
+                V.CPF_FK,
+                V.ORIGEM,
+                V.DESTINO,
+                V.DISTANCIA_KM,
+                V.DATA_SAIDA,
+                V.DATA_CHEGADA,
+                V.HODOMETRO_SAIDA,
+                V.HODOMETRO_CHEGADA,
+                V.STATUS
+            FROM VIAGEM V
+            ORDER BY V.ID
+        """)
+
+        rows = cur.fetchall()
+
+    viagens = []
+    for r in rows:
+        viagens.append({
+            "id": r["ID"],
+            "placa_fk": r["PLACA_FK"],
+            "cpf_fk": r["CPF_FK"],
+            "origem": r["ORIGEM"],
+            "destino": r["DESTINO"],
+            "distancia_km": r["DISTANCIA_KM"],
+            "data_saida": r["DATA_SAIDA"],
+            "data_chegada": r["DATA_CHEGADA"],
+            "hodometro_saida": r["HODOMETRO_SAIDA"],
+            "hodometro_chegada": r["HODOMETRO_CHEGADA"],
+            "status": r["STATUS"]
+        })
+
+    return jsonify(viagens)
+
+
+
+@bp.route("/api/manutencoes")
+def api_manutencoes():
+    with sqlite3.connect(Config.DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                M.ID,
+                M.PLACA_FK,
+                M.TIPO_MANUTENCAO,
+                M.DATA_INICIO,
+                M.DATA_CONCLUSAO,
+                M.CUSTO,
+                M.DESCRICAO,
+                M.STATUS_MANUTENCAO
+            FROM MANUTENCAO M
+            ORDER BY M.ID
+        """)
+
+        rows = cur.fetchall()
+
+    manutencoes = []
+    for r in rows:
+        manutencoes.append({
+            "id": r["ID"],
+            "placa_fk": r["PLACA_FK"],
+            "tipo_manutencao": r["TIPO_MANUTENCAO"],
+            "data_inicio": r["DATA_INICIO"],
+            "data_conclusao": r["DATA_CONCLUSAO"],
+            "custo": r["CUSTO"],
+            "descricao": r["DESCRICAO"],
+            "status_manutencao": r["STATUS_MANUTENCAO"]
+        })
+
+    return jsonify(manutencoes)
+
+
 
 
 

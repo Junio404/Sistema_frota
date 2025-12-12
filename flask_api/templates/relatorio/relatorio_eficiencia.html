@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório de Eficiência</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}" />
+  <style>
+    body {
+      height: 115vh;
+    }
+    .tabela-info {
+      margin-bottom: 5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+  <h2 class="subtitulo_principal">Ranking de Eficiência de Combustível</h2>
+
+  <main class="forms-area">
+    <label class="forms-label" for="placa">Placa</label>
+    <input class="forms-input" type="text" id="placa_input" />
+
+    <label class="forms-label" for="modelo">Modelo</label>
+    <input class="forms-input" type="text" id="modelo_input" />
+  </main>
+
+  <div class="buttons">
+    <button class="submit-button" type="button">Pesquisar</button>
+    <button class="clean-button" type="button">Limpar</button>
+  </div>
+
+  <!-- Ranking -->
+  <table class="tabela-info">
+    <thead>
+      <tr class="tabela-header">
+        <th>Posição</th>
+        <th>Tipo de Veículo</th>
+        <th>Média de Consumo</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-eficiencia"></tbody>
+  </table>
+
+  <!-- Tabela de veículos -->
+  <table class="tabela-info">
+    <thead>
+      <tr class="tabela-header">
+        <th>Posição</th>
+        <th>Placa</th>
+        <th>Ano</th>
+        <th>Quilometragem</th>
+        <th>Status</th>
+        <th>Modelo</th>
+        <th>Marca</th>
+        <th>Combustível</th>
+        <th>Consumo (km/l)</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-veiculos"></tbody>
+  </table>
+
+  <script>
+    const tabelaVeiculos = document.getElementById("tabela-veiculos");
+    const tabelaRank = document.getElementById("tabela-eficiencia");
+
+    const placa_input = document.getElementById("placa_input");
+    const modelo_input = document.getElementById("modelo_input");
+
+    const btnPesquisar = document.querySelector(".submit-button");
+    const btnLimpar = document.querySelector(".clean-button");
+
+    const API_URL = "/api/veiculos";
+
+
+    // -------------------------------------------------------
+    // 1. Carregar todos os veículos
+    // -------------------------------------------------------
+    async function carregarVeiculos() {
+      tabelaVeiculos.innerHTML = `<tr><td colspan="9">Carregando veículos...</td></tr>`;
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          tabelaVeiculos.innerHTML = `<tr><td colspan="9">Erro ao buscar dados.</td></tr>`;
+          return;
+        }
+
+        const dados = await response.json();
+        preencherTabelaVeiculos(dados);
+
+      } catch {
+        tabelaVeiculos.innerHTML = `<tr><td colspan="9">Erro na comunicação com o servidor.</td></tr>`;
+      }
+    }
+
+
+    // -------------------------------------------------------
+    // 2. Preencher tabela de veículos
+    // -------------------------------------------------------
+    function preencherTabelaVeiculos(dados) {
+      tabelaVeiculos.innerHTML = "";
+
+      dados.sort((a, b) => b.consumo_medio_km_l - a.consumo_medio_km_l);
+
+      dados.forEach((v, index) => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td>${index + 1}º</td>
+          <td>${v.placa}</td>
+          <td>${v.ano}</td>
+          <td>${v.quilometragem}</td>
+          <td>${v.status}</td>
+          <td>${v.modelo.nome_modelo}</td>
+          <td>${v.marca.nome}</td>
+          <td>${v.tipo_combustivel}</td>
+          <td>${v.consumo_medio_km_l}</td>
+        `;
+        tabelaVeiculos.appendChild(linha);
+      });
+
+      if (dados.length === 0) {
+        tabelaVeiculos.innerHTML = `<tr><td colspan="9">Nenhum veículo cadastrado.</td></tr>`;
+      }
+    }
+
+
+    // -------------------------------------------------------
+    // 3. Filtro da tabela
+    // -------------------------------------------------------
+    async function filtrarVeiculos() {
+      tabelaVeiculos.innerHTML = `<tr><td colspan="9">Filtrando...</td></tr>`;
+
+      const placaBusca = placa_input.value.trim().toLowerCase();
+      const modeloBusca = modelo_input.value.trim().toLowerCase();
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          tabelaVeiculos.innerHTML = `<tr><td colspan="9">Erro ao buscar dados.</td></tr>`;
+          return;
+        }
+
+        const dados = await response.json();
+
+        const filtrados = dados.filter(v =>
+          (!placaBusca || v.placa.toLowerCase().includes(placaBusca)) &&
+          (!modeloBusca || v.modelo.nome_modelo.toLowerCase().includes(modeloBusca))
+        );
+
+        preencherTabelaVeiculos(filtrados);
+
+      } catch {
+        tabelaVeiculos.innerHTML = `<tr><td colspan="9">Erro ao filtrar.</td></tr>`;
+      }
+    }
+
+
+    // -------------------------------------------------------
+    // 4. Ranking por tipo (maior para menor eficiência)
+    // -------------------------------------------------------
+    async function calcularRankingEficiencia() {
+      tabelaRank.innerHTML = `<tr><td colspan="3">Calculando...</td></tr>`;
+
+      try {
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+          tabelaRank.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
+          return;
+        }
+
+        const dados = await response.json();
+
+        // Agrupar dados por tipo
+        const grupos = {};
+
+        dados.forEach(v => {
+          const tipo = v.tipo_veiculo;
+          const consumo = parseFloat(v.consumo_medio_km_l);
+
+          if (!grupos[tipo]) grupos[tipo] = { total: 0, qtd: 0 };
+
+          grupos[tipo].total += consumo;
+          grupos[tipo].qtd++;
+        });
+
+        // Calcular médias
+        const medias = Object.entries(grupos).map(([tipo, info]) => ({
+          tipo,
+          media: (info.total / info.qtd).toFixed(2)
+        }));
+
+        // Ordenar do mais econômico para o menos
+        medias.sort((a, b) => b.media - a.media);
+
+        tabelaRank.innerHTML = "";
+
+        medias.forEach((item, index) => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${index + 1}º</td>
+            <td>${item.tipo}</td>
+            <td>${item.media} km/l</td>
+          `;
+          tabelaRank.appendChild(linha);
+        });
+
+        if (medias.length === 0) {
+          tabelaRank.innerHTML = `<tr><td colspan="3">Nenhuma informação disponível.</td></tr>`;
+        }
+
+      } catch {
+        tabelaRank.innerHTML = `<tr><td colspan="3">Erro ao calcular ranking.</td></tr>`;
+      }
+    }
+
+
+    // Eventos
+    btnPesquisar.addEventListener("click", filtrarVeiculos);
+
+    btnLimpar.addEventListener("click", () => {
+      placa_input.value = "";
+      modelo_input.value = "";
+      carregarVeiculos();
+      calcularRankingEficiencia();
+    });
+
+    // Inicialização da página
+    carregarVeiculos();
+    calcularRankingEficiencia();
+  </script>
+</body>
+</html>

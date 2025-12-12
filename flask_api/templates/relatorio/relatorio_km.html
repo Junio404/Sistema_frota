@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório de Quilometragem</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/tables.css')}}"
+    />
+  </head>
+
+  <style>
+    body {
+      height: 115vh;
+    }
+
+    .tabela-info{
+        margin-bottom: 5rem;
+    }
+  </style>
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Ranking de Quilometragem por Tipo de Veículo</h2>
+
+    <main class="forms-area">
+      <label class="forms-label" for="placa">Placa</label>
+      <input class="forms-input" type="text" id="placa_input" />
+
+      <label class="forms-label" for="modelo">Modelo</label>
+      <input class="forms-input" type="text" id="modelo_input" />
+    </main>
+
+    <div class="buttons">
+      <button class="submit-button" type="submit">Pesquisar</button>
+      <button class="clean-button" type="reset">Limpar</button>
+    </div>
+    <table class="tabela-info">
+      <thead>
+        <tr class="tabela-header">
+          <th>Posição</th>
+          <th>Tipo de Veículo</th>
+          <th>Quilometragem Total</th>
+          <th>Quilometragem Média</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-quilometragem"></tbody>
+    </table>
+
+    <table class="tabela-info">
+      <thead>
+        <tr class="tabela-header">
+          <th>Placa</th>
+          <th>Ano</th>
+          <th>Quilometragem (KM)</th>
+          <th>Status</th>
+          <th>Modelo</th>
+          <th>Marca</th>
+          <th>Combustível</th>
+          <th>Consumo (km/l)</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-veiculos"></tbody>
+    </table>
+
+    <script>
+      const tabela = document.getElementById("tabela-veiculos");
+
+      const placa_input = document.getElementById("placa_input");
+      const modelo_input = document.getElementById("modelo_input");
+
+      const btnPesquisar = document.querySelector(".submit-button");
+      const btnLimpar = document.querySelector(".clean-button");
+
+      const API_URL = "/api/veiculos";
+
+      // ---------------------------
+      // 1. Carregar todos os veículos
+      // ---------------------------
+      async function carregarVeiculos() {
+        tabela.innerHTML = `<tr><td colspan="8">Carregando veículos...</td></tr>`;
+
+        try {
+          const response = await fetch(API_URL);
+
+          if (!response.ok) {
+            tabela.innerHTML = `<tr><td colspan="8">Erro ao buscar dados: ${response.status}</td></tr>`;
+            return;
+          }
+
+          const dados = await response.json();
+          tabela.innerHTML = "";
+
+          dados.forEach((v) => {
+            const linha = document.createElement("tr");
+            linha.innerHTML = `
+            <td>${v.placa}</td>
+            <td>${v.ano}</td>
+            <td>${v.quilometragem}</td>
+            <td>${v.status}</td>
+            <td>${v.modelo.nome_modelo}</td>
+            <td>${v.marca.nome}</td>
+            <td>${v.tipo_combustivel}</td>
+            <td>${v.consumo_medio_km_l}</td>
+          `;
+            tabela.appendChild(linha);
+          });
+
+          if (dados.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="8">Nenhum veículo cadastrado.</td></tr>`;
+          }
+        } catch (error) {
+          tabela.innerHTML = `<tr><td colspan="8">Falha na comunicação com o servidor.</td></tr>`;
+        }
+      }
+
+      // ---------------------------
+      // 2. Filtrar veículos
+      // ---------------------------
+      async function filtrarVeiculos() {
+        tabela.innerHTML = `<tr><td colspan="8">Filtrando...</td></tr>`;
+
+        const placa_busca = placa_input.value.trim().toLowerCase();
+        const modelo_busca = modelo_input.value.trim().toLowerCase();
+
+        try {
+          const response = await fetch(API_URL);
+
+          if (!response.ok) {
+            tabela.innerHTML = `<tr><td colspan="8">Erro ao buscar dados.</td></tr>`;
+            return;
+          }
+
+          const dados = await response.json();
+
+          const resultados = dados.filter((v) => {
+            const placa_match =
+              !placa_busca || v.placa.toLowerCase().includes(placa_busca);
+
+            const modelo_match =
+              !modelo_busca ||
+              v.modelo.nome_modelo.toLowerCase().includes(modelo_busca);
+
+            return placa_match && modelo_match;
+          });
+
+          tabela.innerHTML = "";
+
+          if (resultados.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="8">Nenhum veículo encontrado.</td></tr>`;
+            return;
+          }
+
+          resultados.forEach((v) => {
+            const linha = document.createElement("tr");
+            linha.innerHTML = `
+            <td>${v.placa}</td>
+            <td>${v.ano}</td>
+            <td>${v.quilometragem}</td>
+            <td>${v.status}</td>
+            <td>${v.modelo.nome_modelo}</td>
+            <td>${v.marca.nome}</td>
+            <td>${v.tipo_combustivel}</td>
+            <td>${v.consumo_medio_km_l}</td>
+          `;
+            tabela.appendChild(linha);
+          });
+        } catch (error) {
+          tabela.innerHTML = `<tr><td colspan="8">Erro ao filtrar.</td></tr>`;
+        }
+      }
+
+      // Eventos
+      btnPesquisar.addEventListener("click", filtrarVeiculos);
+
+      btnLimpar.addEventListener("click", () => {
+        placa_input.value = "";
+        modelo_input.value = "";
+
+        carregarVeiculos();
+      });
+
+// ---------------------------
+// 3. Calcular ranking de quilometragem média por tipo
+// ---------------------------
+async function calcularRankingEficiencia() {
+  const tabelaRank = document.getElementById("tabela-quilometragem");
+  tabelaRank.innerHTML = `<tr><td colspan="4">Calculando...</td></tr>`;
+
+  try {
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      tabelaRank.innerHTML = `<tr><td colspan="4">Erro ao carregar dados.</td></tr>`;
+      return;
+    }
+
+    const dados = await response.json();
+
+    // 1 — Agrupar quilometragem por tipo de veículo
+    const grupos = {};
+    // Exemplo:
+    // grupos = {
+    //   CARRO: { totalKm: 123456, qtd: 4 },
+    //   MOTO:  { totalKm: 90000,  qtd: 3 }
+    // }
+
+    dados.forEach(v => {
+      const tipo = v.tipo_veiculo; // <- o backend PRECISA retornar isso
+      const km = parseFloat(v.quilometragem) || 0;
+
+      if (!grupos[tipo]) {
+        grupos[tipo] = { totalKm: 0, qtd: 0 };
+      }
+
+      grupos[tipo].totalKm += km;
+      grupos[tipo].qtd += 1;
+    });
+
+    // 2 — Calcular quilometragem média
+    const medias = Object.entries(grupos).map(([tipo, info]) => ({
+      tipo,
+      total: info.totalKm,
+      media: (info.totalKm / info.qtd).toFixed(2)
+    }));
+
+    // 3 — Ordenar do MAIOR para o MENOR média (mais rodado no topo)
+    medias.sort((a, b) => b.media - a.media);
+
+    // 4 — Montar tabela
+    tabelaRank.innerHTML = "";
+
+    medias.forEach((item, index) => {
+      const linha = document.createElement("tr");
+      linha.innerHTML = `
+        <td>${index + 1}º</td>
+        <td>${item.tipo}</td>
+        <td>${item.total} km</td>
+        <td>${item.media} km</td>
+      `;
+      tabelaRank.appendChild(linha);
+    });
+
+    if (medias.length === 0) {
+      tabelaRank.innerHTML = `<tr><td colspan="4">Nenhuma informação disponível.</td></tr>`;
+    }
+
+  } catch (error) {
+    tabelaRank.innerHTML = `<tr><td colspan="4">Erro ao calcular ranking.</td></tr>`;
+  }
+}
+      calcularRankingEficiencia();
+      // Carregar ao abrir página
+      carregarVeiculos();
+
+      btnLimpar.addEventListener("click", () => {
+        placa_input.value = "";
+        modelo_input.value = "";
+
+        carregarVeiculos();
+        calcularRankingEficiencia();
+      });
+    </script>
+  </body>
+</html>

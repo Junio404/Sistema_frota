@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório de Manutenções</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/tables.css')}}"
+    />
+  </head>
+
+  <style>
+    body {
+      height: 115vh;
+    }
+
+    .tabela-info{
+        margin-bottom: 5rem;
+    }
+  </style>
+
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Relatório de Manutenções</h2>
+
+    <main class="forms-area">
+      <label class="forms-label" for="placa">Placa</label>
+      <input class="forms-input" type="text" id="placa_input" />
+
+      <label class="forms-label" for="tipo_manut">Tipo de Manutenção</label>
+      <input class="forms-input" type="text" id="tipo_manut_input" />
+    </main>
+
+    <div class="buttons">
+      <button class="submit-button" type="submit">Pesquisar</button>
+      <button class="clean-button" type="reset">Limpar</button>
+    </div>
+
+    <!-- RANKING -->
+    <table class="tabela-info">
+      <thead>
+        <tr class="tabela-header">
+          <th>Posição</th>
+          <th>Tipo de Veículo</th>
+          <th>Custo Total</th>
+          <th>Custo Médio</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-ranking"></tbody>
+    </table>
+
+    <!-- TODAS AS MANUTENÇÕES -->
+    <table class="tabela-info">
+      <thead>
+        <tr class="tabela-header">
+          <th>ID</th>
+          <th>Placa</th>
+          <th>Tipo Manutenção</th>
+          <th>Data Início</th>
+          <th>Data Conclusão</th>
+          <th>Custo</th>
+          <th>Descrição</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-manutencoes"></tbody>
+    </table>
+
+    <script>
+      const tabelaManut = document.getElementById("tabela-manutencoes");
+      const tabelaRanking = document.getElementById("tabela-ranking");
+
+      const placa_input = document.getElementById("placa_input");
+      const tipo_input = document.getElementById("tipo_manut_input");
+
+      const btnPesquisar = document.querySelector(".submit-button");
+      const btnLimpar = document.querySelector(".clean-button");
+
+      const API_MANUT = "/api/manutencoes";
+      const API_VEICULOS = "/api/veiculos";
+
+      // ----------------------------------------------------
+      // 1. FUNÇÃO PRINCIPAL — carregar e montar tabelas
+      // ----------------------------------------------------
+      async function carregarTudo() {
+        tabelaManut.innerHTML =
+          `<tr><td colspan="8">Carregando manutenções...</td></tr>`;
+        tabelaRanking.innerHTML =
+          `<tr><td colspan="4">Calculando ranking...</td></tr>`;
+
+        try {
+          const manRes = await fetch(API_MANUT);
+          const veiRes = await fetch(API_VEICULOS);
+
+          if (!manRes.ok || !veiRes.ok) {
+            tabelaManut.innerHTML =
+              `<tr><td colspan="8">Erro ao carregar dados.</td></tr>`;
+            return;
+          }
+
+          const manut = await manRes.json();
+          const veiculos = await veiRes.json();
+
+          montarTabelaManutencoes(manut);
+          montarRanking(manut, veiculos);
+
+        } catch (e) {
+          tabelaManut.innerHTML =
+            `<tr><td colspan="8">Erro ao comunicar com servidor.</td></tr>`;
+        }
+      }
+
+      // ----------------------------------------------------
+      // 2. FILTRO POR PLACA E TIPO DE MANUTENÇÃO
+      // ----------------------------------------------------
+      async function filtrar() {
+        try {
+          const manRes = await fetch(API_MANUT);
+          if (!manRes.ok) return;
+
+          const manut = await manRes.json();
+
+          const placaBusca = placa_input.value.trim().toLowerCase();
+          const tipoBusca = tipo_input.value.trim().toLowerCase();
+
+          const filtrados = manut.filter(m => {
+            const placaMatch =
+              !placaBusca || m.placa_fk.toLowerCase().includes(placaBusca);
+
+            const tipoMatch =
+              !tipoBusca ||
+              m.tipo_manutencao.toLowerCase().includes(tipoBusca);
+
+            return placaMatch && tipoMatch;
+          });
+
+          montarTabelaManutencoes(filtrados);
+
+        } catch (e) {
+          tabelaManut.innerHTML =
+            `<tr><td colspan="8">Erro ao filtrar.</td></tr>`;
+        }
+      }
+
+      // ----------------------------------------------------
+      // 3. TABELA DE TODAS AS MANUTENÇÕES
+      // ----------------------------------------------------
+      function montarTabelaManutencoes(lista) {
+        tabelaManut.innerHTML = "";
+
+        if (lista.length === 0) {
+          tabelaManut.innerHTML =
+            `<tr><td colspan="8">Nenhuma manutenção encontrada.</td></tr>`;
+          return;
+        }
+
+        lista.forEach(m => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${m.id}</td>
+            <td>${m.placa_fk}</td>
+            <td>${m.tipo_manutencao}</td>
+            <td>${m.data_inicio}</td>
+            <td>${m.data_conclusao ?? "-"}</td>
+            <td>${m.custo ?? 0}</td>
+            <td>${m.descricao}</td>
+            <td>${m.status_manutencao}</td>
+          `;
+          tabelaManut.appendChild(linha);
+        });
+      }
+
+      // ----------------------------------------------------
+      // 4. RANKING DE CUSTO TOTAL E MÉDIO POR TIPO DE VEÍCULO
+      // ----------------------------------------------------
+      function montarRanking(manutencoes, veiculos) {
+        tabelaRanking.innerHTML = "";
+
+        // Mapeia placa → tipo de veículo
+        const mapaTipo = {};
+        veiculos.forEach(v => {
+          mapaTipo[v.placa] = v.tipo_veiculo;
+        });
+
+        // Acumular custos por tipo
+        const grupos = {}; // { CARRO: { total: X, qtd: Y } }
+
+        manutencoes.forEach(m => {
+          const tipo = mapaTipo[m.placa_fk];
+          if (!tipo) return;
+
+          const custo = parseFloat(m.custo || 0);
+
+          if (!grupos[tipo]) grupos[tipo] = { total: 0, qtd: 0 };
+
+          grupos[tipo].total += custo;
+          grupos[tipo].qtd += 1;
+        });
+
+        // Criar lista
+        const ranking = Object.entries(grupos).map(([tipo, info]) => ({
+          tipo,
+          total: info.total.toFixed(2),
+          media: (info.total / info.qtd).toFixed(2)
+        }));
+
+        // Ordenar — maior custo total primeiro
+        ranking.sort((a, b) => b.total - a.total);
+
+        ranking.forEach((item, index) => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${index + 1}º</td>
+            <td>${item.tipo}</td>
+            <td>R$ ${item.total}</td>
+            <td>R$ ${item.media}</td>
+          `;
+          tabelaRanking.appendChild(linha);
+        });
+
+        if (ranking.length === 0) {
+          tabelaRanking.innerHTML =
+            `<tr><td colspan="4">Nenhuma manutenção registrada.</td></tr>`;
+        }
+      }
+
+      // ----------------------------------------------------
+      // EVENTOS
+      // ----------------------------------------------------
+      btnPesquisar.addEventListener("click", filtrar);
+
+      btnLimpar.addEventListener("click", () => {
+        placa_input.value = "";
+        tipo_input.value = "";
+        carregarTudo();
+      });
+
+      carregarTudo();
+    </script>
+  </body>
+</html>

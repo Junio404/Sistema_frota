@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Motoristas</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/tables.css')}}"
+    />
+    <style>
+      .hidden { display: none; }
+
+      .btn-toggle {
+        padding: 10px 20px;
+        margin: 10px 10px 20px 0;
+        cursor: pointer;
+        border: none;
+        background: #1e88e5;
+        color: white;
+        border-radius: 5px;
+      }
+      .btn-active {
+        background: #0d47a1 !important;
+      }
+
+      .btntables{
+        margin-left: 5rem ;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Consulta de Dados</h2>
+
+    <!-- BOTÕES PARA TROCAR ENTRE TABELAS -->
+    <div class="btntables">
+      <button id="btnMotoristas" class="submit-button">Motoristas</button>
+      <button id="btnViagens" class="submit-button">Viagens</button>
+    </div>
+
+    <!-- =================== CAMPOS DE BUSCA (DINÂMICOS) =================== -->
+    <main class="forms-area" id="area-busca"></main>
+
+    <div class="buttons">
+      <button class="submit-button" id="btnPesquisar">Pesquisar</button>
+      <button class="clean-button" id="btnLimpar">Limpar</button>
+    </div>
+
+    <!-- =================== TABELA MOTORISTAS =================== -->
+    <table class="tabela-info" id="tabela-motoristas">
+      <thead>
+        <tr class="tabela-header">
+          <th>Posição</th>
+          <th>CPF</th>
+          <th>Nome</th>
+          <th>Categoria CNH</th>
+          <th>Experiência (anos)</th>
+          <th>Disponibilidade</th>
+          <th>CNH válido até</th>
+          <th>Quantidade de Viagens</th>
+        </tr>
+      </thead>
+      <tbody id="corpo-motoristas"></tbody>
+    </table>
+
+    <!-- =================== TABELA VIAGENS =================== -->
+    <table class="tabela-info hidden" id="tabela-viagens">
+      <thead>
+        <tr class="tabela-header">
+          <th>ID</th>
+          <th>CPF Motorista</th>
+          <th>Placa</th>
+          <th>Origem</th>
+          <th>Destino</th>
+          <th>Início</th>
+          <th>Fim</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="corpo-viagens"></tbody>
+    </table>
+
+<script>
+  // ELEMENTOS
+  const areaBusca = document.getElementById("area-busca");
+  const btnPesquisar = document.getElementById("btnPesquisar");
+  const btnLimpar = document.getElementById("btnLimpar");
+
+  const btnMotoristas = document.getElementById("btnMotoristas");
+  const btnViagens = document.getElementById("btnViagens");
+
+  const tabelaMotoristas = document.getElementById("tabela-motoristas");
+  const tabelaViagens = document.getElementById("tabela-viagens");
+
+  const corpoMotoristas = document.getElementById("corpo-motoristas");
+  const corpoViagens = document.getElementById("corpo-viagens");
+
+  let tabelaAtual = "motoristas";
+
+  // BUSCAS DINÂMICAS
+  function carregarBuscaMotoristas() {
+    areaBusca.innerHTML = `
+      <label class="forms-label">CPF</label>
+      <input class="forms-input" type="text" id="cpf_input">
+
+      <label class="forms-label">Nome</label>
+      <input class="forms-input" type="text" id="nome_input">
+    `;
+  }
+
+  function carregarBuscaViagens() {
+    areaBusca.innerHTML = `
+      <label class="forms-label">Placa</label>
+      <input class="forms-input" type="text" id="placa_input">
+
+      <label class="forms-label">CPF Motorista</label>
+      <input class="forms-input" type="text" id="cpf_viagem_input">
+    `;
+  }
+
+  // ALTERNAR TABELAS
+  function mostrarMotoristas() {
+    tabelaAtual = "motoristas";
+
+    tabelaMotoristas.classList.remove("hidden");
+    tabelaViagens.classList.add("hidden");
+
+    btnMotoristas.classList.add("btn-active");
+    btnViagens.classList.remove("btn-active");
+
+    carregarBuscaMotoristas();
+  }
+
+  function mostrarViagens() {
+    tabelaAtual = "viagens";
+
+    tabelaViagens.classList.remove("hidden");
+    tabelaMotoristas.classList.add("hidden");
+
+    btnViagens.classList.add("btn-active");
+    btnMotoristas.classList.remove("btn-active");
+
+    carregarBuscaViagens();
+  }
+
+  btnMotoristas.onclick = mostrarMotoristas;
+  btnViagens.onclick = mostrarViagens;
+
+  // MOTORISTAS
+  const API_MOTORISTAS = "/api/motoristas";
+  const API_VIAGENS = "/api/viagens";
+
+  async function carregarMotoristas() {
+    corpoMotoristas.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
+
+    try {
+      const res = await fetch(API_MOTORISTAS);
+      const dados = await res.json();
+
+      corpoMotoristas.innerHTML = "";
+
+      dados.forEach(m => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td></td>
+          <td>${m.cpf}</td>
+          <td>${m.nome}</td>
+          <td>${m.cat_cnh}</td>
+          <td>${m.experiencia_anos}</td>
+          <td>${m.disponibilidade}</td>
+          <td>${m.cnh_valido_ate}</td>
+          <td>0</td>
+        `;
+        corpoMotoristas.appendChild(linha);
+      });
+
+      calcularRanking();
+    } catch {
+      corpoMotoristas.innerHTML = `<tr><td colspan="8">Erro ao carregar.</td></tr>`;
+    }
+  }
+
+  async function calcularRanking() {
+    const res = await fetch(API_VIAGENS);
+    const viagens = await res.json();
+
+    const contagem = {};
+
+    viagens.forEach(v => {
+      contagem[v.cpf_fk] = (contagem[v.cpf_fk] || 0) + 1;
+    });
+
+    let linhas = Array.from(corpoMotoristas.querySelectorAll("tr"));
+
+    linhas.forEach(l => {
+      const cpf = l.children[1].innerText;
+      l.children[7].innerText = contagem[cpf] || 0;
+    });
+
+    linhas.sort((a, b) => (b.children[7].innerText - a.children[7].innerText));
+
+    corpoMotoristas.innerHTML = "";
+    linhas.forEach((l, i) => {
+      l.children[0].innerText = `${i + 1}º`;
+      corpoMotoristas.appendChild(l);
+    });
+  }
+
+  // VIAGENS
+  async function carregarViagens() {
+    corpoViagens.innerHTML = `<tr><td colspan="8">Carregando...</td></tr>`;
+
+    try {
+      const res = await fetch(API_VIAGENS);
+      const dados = await res.json();
+
+      corpoViagens.innerHTML = "";
+
+      dados.forEach(v => {
+        corpoViagens.innerHTML += `
+          <tr>
+            <td>${v.id}</td>
+            <td>${v.cpf_fk}</td>
+            <td>${v.placa_fk}</td>
+            <td>${v.origem}</td>
+            <td>${v.destino}</td>
+            <td>${v.data_saida}</td>
+            <td>${v.data_chegada}</td>
+            <td>${v.status}</td>
+          </tr>
+        `;
+      });
+
+    } catch {
+      corpoViagens.innerHTML = `<tr><td colspan="8">Erro ao carregar viagens.</td></tr>`;
+    }
+  }
+
+  // PESQUISAR
+  btnPesquisar.onclick = () => {
+    if (tabelaAtual === "motoristas") pesquisarMotoristas();
+    else pesquisarViagens();
+  };
+
+  async function pesquisarMotoristas() {
+    const cpf = document.getElementById("cpf_input").value.trim();
+    const nome = document.getElementById("nome_input").value.trim().toLowerCase();
+
+    const res = await fetch(API_MOTORISTAS);
+    const dados = await res.json();
+
+    let filtrados = dados.filter(m =>
+      (!cpf || m.cpf === cpf) &&
+      (!nome || m.nome.toLowerCase().includes(nome))
+    );
+
+    corpoMotoristas.innerHTML = "";
+
+    filtrados.forEach(m => {
+      corpoMotoristas.innerHTML += `
+        <tr>
+          <td></td>
+          <td>${m.cpf}</td>
+          <td>${m.nome}</td>
+          <td>${m.cat_cnh}</td>
+          <td>${m.experiencia_anos}</td>
+          <td>${m.disponibilidade}</td>
+          <td>${m.cnh_valido_ate}</td>
+          <td>0</td>
+        </tr>
+      `;
+    });
+
+    calcularRanking();
+  }
+
+  async function pesquisarViagens() {
+    const placa = document.getElementById("placa_input").value.trim().toLowerCase();
+    const cpf = document.getElementById("cpf_viagem_input").value.trim();
+
+    const res = await fetch(API_VIAGENS);
+    const dados = await res.json();
+
+    let filtrados = dados.filter(v =>
+      (!placa || v.placa_fk.toLowerCase().includes(placa)) &&
+      (!cpf || v.cpf_fk === cpf)
+    );
+
+    corpoViagens.innerHTML = "";
+
+    filtrados.forEach(v => {
+      corpoViagens.innerHTML += `
+        <tr>
+          <td>${v.id}</td>
+          <td>${v.cpf_fk}</td>
+          <td>${v.placa_fk}</td>
+          <td>${v.origem}</td>
+          <td>${v.destino}</td>
+          <td>${v.data_saida}</td>
+          <td>${v.data_chegada}</td>
+          <td>${v.status}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // LIMPAR
+  btnLimpar.onclick = () => {
+    if (tabelaAtual === "motoristas") {
+      mostrarMotoristas();
+      carregarMotoristas();
+    } else {
+      mostrarViagens();
+      carregarViagens();
+    }
+  };
+
+  carregarBuscaMotoristas();
+  carregarMotoristas();
+  carregarViagens();
+</script>
+
+  </body>
+</html>

@@ -84,6 +84,7 @@ table {
   max-width: 90vw;
   margin: 0 auto;
   border-radius: 10px;
+
 }
 
 .forms-label {
@@ -170,6 +171,16 @@ table {
   outline: 1px solid black;
 }
 
+
+.tabela-info tbody tr:nth-child(odd) {
+    background-color: #1b263b; /* Cinza claro */
+}
+
+/* Cor para linhas pares (2, 4, 6...) */
+.tabela-info tbody tr:nth-child(even) {
+    background-color:  #324b79;
+}
+
 /* Layout adjustments for smaller screens */
 @media (max-width: 768px) {
   .forms-area {
@@ -184,6 +195,11 @@ table {
   }
 }
 
+@media (max-width: 1500px) {
+    body{
+      height: 110vh;
+    }
+  }
 
 
       table {

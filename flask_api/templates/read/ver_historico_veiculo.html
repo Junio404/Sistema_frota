@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico dos Veículos</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/tables.css')}}"
+    />
+
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="titulo_principal">SISTEMA DE GERENCIAMENTO DE FROTA</h1>
+    <h2 class="subtitulo_principal">Lista de Modelos</h2>
+
+    <main class="forms-area">
+      <label class="forms-label" for="id">Id Histórico</label>
+      <input class="forms-input" type="text" name="id" id="nome_modelo" />
+      <label class="forms-label" for="placa">Placa</label>
+      <input class="forms-input" type="text" name="modelo" id="placa" />
+      <label class="forms-label" for="modelo">Tipo Evento</label>
+      <input class="forms-input" type="text" name="modelo" id="tipo_veiculo" />
+    </main>
+    <div class="buttons">
+      <button class="submit-button" type="submit">Pesquisar</button>
+      <button class="clean-button" type="reset">Limpar</button>
+    </div>
+
+    <table class="tabela-info">
+      <thead>
+        <tr class="tabela-header">
+          <th>ID</th>
+          <th>Placa</th>
+          <th>Tipo do Evento</th>
+          <th>Data do Evento</th>
+          <th>Resumo</th>
+          <th>Valor Associado</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-modelos"></tbody>
+    </table>
+
+<script>
+  const tabela = document.getElementById("tabela-modelos");
+  const id_input = document.getElementById("nome_modelo");
+  const placa_input = document.getElementById("placa");    // <-- ADICIONADO
+  const modelo_input = document.getElementById("tipo_veiculo");
+  const button = document.querySelector(".submit-button");
+  const clear_button = document.querySelector(".clean-button");
+
+  const API_URL = "/api/historico_veiculo";
+
+  async function carregarTabela(dados) {
+    tabela.innerHTML = "";
+
+    if (!dados || dados.length === 0) {
+      tabela.innerHTML = `<tr><td colspan="7">Nenhum registro encontrado.</td></tr>`;
+      return;
+    }
+
+    dados.forEach((h) => {
+      const linha = document.createElement("tr");
+      linha.innerHTML = `
+          <td>${h.id}</td>
+          <td>${h.placa_fk}</td>
+          <td>${h.tipo_evento}</td>
+          <td>${h.data_evento}</td>
+          <td>${h.resumo}</td>
+          <td>${h.valor_associado}</td>
+          <td>${h.observacao}</td>
+      `;
+      tabela.appendChild(linha);
+    });
+  }
+
+  async function carregarModelos() {
+    tabela.innerHTML = `<tr><td colspan="7">Carregando...</td></tr>`;
+
+    try {
+      const response = await fetch(API_URL);
+      const dados = await response.json();
+      carregarTabela(dados);
+    } catch (error) {
+      tabela.innerHTML = `<tr><td colspan="7">Erro ao carregar dados.</td></tr>`;
+    }
+  }
+
+  async function filtrar_dados(event) {
+    if (event) event.preventDefault();
+
+    tabela.innerHTML = `<tr><td colspan="7">Buscando...</td></tr>`;
+
+    const id_busca = id_input.value.trim();
+    const placa_busca = placa_input.value.trim().toLowerCase(); // <-- ADICIONADO
+    const filtro_texto = modelo_input.value.trim().toLowerCase();
+
+    try {
+      const response = await fetch(API_URL);
+      const dados = await response.json();
+
+      // FILTRO COM PLACA ADICIONADO
+      const filtrados = dados.filter((h) => {
+        const match_id = !id_busca || String(h.id) === id_busca;
+
+        const match_placa =
+          !placa_busca || h.placa_fk.toLowerCase().includes(placa_busca);
+
+        const match_tipo_evento =
+          !filtro_texto || h.tipo_evento.toLowerCase().includes(filtro_texto);
+
+        return match_id && match_placa && match_tipo_evento;
+      });
+
+      carregarTabela(filtrados);
+    } catch (error) {
+      tabela.innerHTML = `<tr><td colspan="7">Erro ao filtrar dados.</td></tr>`;
+    }
+  }
+
+  // Eventos
+  carregarModelos();
+  button.addEventListener("click", filtrar_dados);
+  clear_button.addEventListener("click", () => {
+    id_input.value = "";
+    placa_input.value = ""; // <-- ADICIONADO
+    modelo_input.value = "";
+    carregarModelos();
+  });
+</script>
+
+  </body>
+</html>
