@@ -220,7 +220,7 @@ def criar_viagem_route():
         flash(f"❌ Erro nos dados da viagem: {str(e)}")
         return redirect(url_for("routes_create.forms_viagem"))
 
-    # ------- REGRAS DE NEGÓCIO — usando dados que seu repo oferece --------------
+    # ------- REGRAS DE NEGÓCIO --------------
 
     # ----------------- Status do motorista ---------------------
     if motorista["DISPONIBILIDADE"] != Status_motorista.ATIVO.value:

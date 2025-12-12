@@ -67,10 +67,8 @@ class Motorista(Pessoa):
 
     @property
     def cnh_valido_ate(self):
-        # É importante usar hasattr() para checar se o atributo existe antes de retornar
+
         if not hasattr(self, '_cnh_valido_ate'):
-            # Isso pode acontecer se o construtor falhar, mas é uma segurança.
-            # No seu caso, o problema é a atribuição no setter.
             raise AttributeError("O atributo _cnh_valido_ate não foi inicializado.")
         return self._cnh_valido_ate
 
