@@ -1,5 +1,4 @@
-venv/
-config.py
+
 *pycache*
 db.py
-meu_banco.db
+
