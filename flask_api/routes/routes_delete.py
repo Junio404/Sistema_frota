@@ -34,6 +34,20 @@ def deletar_motorista_route():
         if not cpf_existe(cpf):
             flash("❌ Insira um CPF válido para deletar.")
             return redirect("/motorista/deletar")
+        
+        with sqlite3.connect(Config.DATABASE) as conn:
+            cur = conn.cursor()
+            
+            cur.execute("""
+            SELECT DISPONIBILIDADE
+            FROM MOTORISTA
+            WHERE CPF = ?                        
+                        """, (cpf,))
+            cpf_status = cur.fetchone()
+        
+        if cpf_status != Veiculo_status.ATIVO.value or cpf_status != Veiculo_status.INATIVO.value:
+            flash("❌ Delete o Motorista apenas se ele não estiver em Viagem")
+            return redirect("/motorista/deletar")
 
 
 # ------------ DELETAR ------------
@@ -62,6 +76,20 @@ def deletar_veiculo_route():
         if not placa_existe(placa):
             flash("❌ Insira uma PLACA válida para deletar.")
             return redirect("/veiculo/deletar")
+        
+        with sqlite3.connect(Config.DATABASE) as conn:
+            cur = conn.cursor()
+            
+            cur.execute("""
+            SELECT STATUS
+            FROM VEICULO
+            WHERE PLACA = ?                        
+                        """, (placa,))
+            placa_status = cur.fetchone()
+        
+        if placa_status != Status_motorista.ATIVO.value or placa_status != Status_motorista.INATIVO.value:
+            flash("❌ Delete o Veiculo apenas se ele não estiver em Viagem ou em Manutenção")
+            return redirect("/veiculo/deletar")        
         
         veiculo_deletado = deletar_veiculo(placa)
         flash("✅ Veiculo Deletado com sucesso!")
