@@ -16,7 +16,7 @@ from flask_api.models.model_abastecimento import Abastecimento_create
 from flask_api.models.model_manutencao import Manutencao_create
 from datetime import datetime
 from datetime import date 
-
+from flask_api.models.enums import Motorista_status, Veiculo_status
 
 bp_routes_delete = Blueprint('routes_delete', __name__)
 #--------------------- DELETE ROUTES -------------------------------
@@ -44,8 +44,13 @@ def deletar_motorista_route():
             WHERE CPF = ?                        
                         """, (cpf,))
             cpf_status = cur.fetchone()
+            
+        status = cpf_status[0]  # ← pega o valor real
         
-        if cpf_status != Veiculo_status.ATIVO.value or cpf_status != Veiculo_status.INATIVO.value:
+        if status not in (
+            Motorista_status.ATIVO.value,
+            Motorista_status.INATIVO.value
+        ):
             flash("❌ Delete o Motorista apenas se ele não estiver em Viagem")
             return redirect("/motorista/deletar")
 
@@ -87,9 +92,13 @@ def deletar_veiculo_route():
                         """, (placa,))
             placa_status = cur.fetchone()
         
-        if placa_status != Status_motorista.ATIVO.value or placa_status != Status_motorista.INATIVO.value:
-            flash("❌ Delete o Veiculo apenas se ele não estiver em Viagem ou em Manutenção")
-            return redirect("/veiculo/deletar")        
+        status = placa_status[0]  # ← pega o valor real
+        if status not in (
+            Veiculo_status.ATIVO.value,
+            Veiculo_status.INATIVO.value
+        ):
+            flash("❌ Delete o Veículo apenas se ele não estiver em Viagem")
+            return redirect("/veiculo/deletar")
         
         veiculo_deletado = deletar_veiculo(placa)
         flash("✅ Veiculo Deletado com sucesso!")
