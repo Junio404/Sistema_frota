@@ -13,6 +13,7 @@ Este documento descreve, passo a passo, como clonar o repositório, configurar o
 **Pré-requisito:**  
 - Python já instalado na máquina  
 - Git instalado
+- Para visualização do banco: DB browser for Sqlite
 
 ---
 
