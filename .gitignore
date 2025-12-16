@@ -1,4 +1,6 @@
 venv/
 venv_test/
+venv_teste2/
 *pycache*
-
+TECNOLOGIAS.md
+EXEMPLOS.md
