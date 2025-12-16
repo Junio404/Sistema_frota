@@ -2,6 +2,8 @@ import sqlite3
 from config import Config
 from flask_api.domain_classes.dc_motorista import Motorista
 from flask_api.domain_classes.dc_pessoa import Pessoa
+from flask_api.models.enums import Status_motorista
+from datetime import date
 
 
 # ---------------------------------------------------------
@@ -137,9 +139,8 @@ def listar_motoristas() -> list[Motorista]:
         return [row_to_motorista(r) for r in rows]
 
 
-# ---------------------------------------------------------
-# ATUALIZAR MOTORISTA
-# ---------------------------------------------------------
+
+#----------- ATUALIZAR MOTORISTA -------------------
 def atualizar_motorista(id: int, dados: dict):
     """
     dados = {
@@ -194,3 +195,63 @@ def deletar_motorista(cpf: str):
         cur.execute("""
         DELETE FROM MOTORISTA WHERE CPF = ?            
                     """, (cpf,))
+        
+        
+def verificar_cnh_vencida_motoristas():
+    """
+    Verifica motoristas com CNH vencida.
+    Se CNH_VALIDO_ATE < hoje, altera DISPONIBILIDADE para INATIVO.
+    """
+
+    data_hoje_iso = date.today().isoformat()
+    conn = None
+
+    try:
+        conn = sqlite3.connect(Config.DATABASE)
+        conn.execute("PRAGMA foreign_keys = ON")
+        cur = conn.cursor()
+
+        # ------------ Buscar motoristas com CNH vencida e ainda ativos ---------------
+        cur.execute("""
+            SELECT ID, CPF, CNH_VALIDO_ATE, DISPONIBILIDADE
+            FROM MOTORISTA
+            WHERE CNH_VALIDO_ATE < ?
+              AND DISPONIBILIDADE != ?
+        """, (
+            data_hoje_iso,
+            Status_motorista.INATIVO.value
+        ))
+
+        motoristas_vencidos = cur.fetchall()
+
+        if not motoristas_vencidos:
+            print("Nenhum motorista com CNH vencida encontrado.")
+            return
+
+
+        # ---------Atualizar status para INATIVO ---------------
+
+        for id_motorista, cpf, validade, status in motoristas_vencidos:
+            cur.execute("""
+                UPDATE MOTORISTA
+                SET DISPONIBILIDADE = ?
+                WHERE ID = ?
+            """, (Status_motorista.INATIVO.value, id_motorista))
+
+            print(
+                f"⚠️ Motorista CPF {cpf} com CNH vencida em {validade} "
+                f"foi marcado como INATIVO."
+            )
+
+        conn.commit()
+        print("✅ Verificação de CNH vencida concluída com sucesso.")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Erro ao verificar CNH vencida: {e}")
+        raise
+
+    finally:
+        if conn:
+            conn.close()

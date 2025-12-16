@@ -224,7 +224,7 @@ def criar_viagem_route():
 
     # ----------------- Status do motorista ---------------------
     if motorista["DISPONIBILIDADE"] != Status_motorista.ATIVO.value:
-        flash("❌ Motorista não está disponível.")
+        flash("❌ Motorista não está disponível ou sua cnh está vencida.")
         return redirect(url_for("routes_create.forms_viagem"))
 
     # -------------- Status do veículo ----------------

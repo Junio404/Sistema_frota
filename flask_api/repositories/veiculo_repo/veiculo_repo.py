@@ -1,7 +1,7 @@
 import sqlite3
 from config import Config
 import re
-
+from flask_api.models.enums import Veiculo_status
 
 def buscar_dados_modelo(id_modelo: int):
     with sqlite3.connect(Config.DATABASE) as conn:
@@ -145,3 +145,60 @@ def deletar_veiculo(placa: str):
         conn.commit()
 
     return f"Veiculo com a Placa {placa} deletado permanentemente!"
+
+
+
+def verificar_preventiva_urgente_veiculos():
+    """
+    Verifica a quilometragem dos veículos.
+    Se QUILOMETRAGEM >= 10000 km e o status for ATIVO ou INATIVO,
+    altera para PREVENTIVA_URGENTE.
+    """
+
+    conn = None
+    try:
+        conn = sqlite3.connect(Config.DATABASE)
+        conn.execute("PRAGMA foreign_keys = ON")
+        cur = conn.cursor()
+
+        
+        # -------- Buscar veículos elegíveis para preventiva urgente ------------
+        cur.execute("""
+            SELECT PLACA, QUILOMETRAGEM, STATUS
+            FROM VEICULO
+            WHERE QUILOMETRAGEM >= ?
+              AND STATUS IN (?, ?)
+        """, (
+            10000,
+            Veiculo_status.ATIVO.value,
+            Veiculo_status.INATIVO.value
+        ))
+
+        veiculos_para_preventiva = cur.fetchall()
+
+        if not veiculos_para_preventiva:
+            print("Nenhum veículo elegível para preventiva urgente.")
+            return
+
+        # --------- 2 — Atualizar status para PREVENTIVA_URGENTE -----------------
+        for placa, km, status in veiculos_para_preventiva:
+            cur.execute("""
+                UPDATE VEICULO
+                SET STATUS = ?
+                WHERE PLACA = ?
+            """, (Veiculo_status.PREVENTIVA_URGENTE.value, placa))
+
+            print(f"⚠️ Veículo {placa} com {km} km marcado como PREVENTIVA_URGENTE.")
+
+        conn.commit()
+        print("✅ Verificação de preventiva urgente concluída com sucesso.")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Erro ao verificar preventiva urgente: {e}")
+        raise
+
+    finally:
+        if conn:
+            conn.close()
